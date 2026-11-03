@@ -37,7 +37,7 @@ export function FilterSelect({
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger
-        className={cn('h-9 min-w-[140px] text-xs', className)}
+        className={cn('h-9 w-full sm:w-auto sm:min-w-[140px] text-xs', className)}
         aria-label={ariaLabel || placeholder}
       >
         <SelectValue placeholder={placeholder} />

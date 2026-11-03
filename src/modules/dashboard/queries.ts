@@ -9,6 +9,7 @@ export interface AdminDashboardData {
   totalPegawai: number;
   penugasanHariIni: {
     total: number;
+    pegawaiUnik: number;
     loket: number;
     kecamatan: number;
     kantor: number;
@@ -20,7 +21,10 @@ export interface AdminDashboardData {
       items: Array<{ id: string; nama: string; stok: number; limitStok: number; satuan: string | null }>;
     };
     tiketMenunggu: number;
-    jadwalMenunggu: number;
+    jadwalMenunggu: {
+      count: number;
+      items: Array<{ id: string; judul: string; pegawaiName: string; tanggal: string; lokasiTipe: string }>;
+    };
     pbgDueSoon: {
       count: number;
       items: Array<{ id: string; pemohon: string; nominal: string; jatuhTempo: string; noSkrd: string }>;
@@ -62,11 +66,12 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardData> {
     .from(user)
     .where(and(eq(user.role, 'PEGAWAI'), eq(user.aktif, true)));
 
-  // 2. Penugasan Hari Ini dihitung di SQL: hitung PEGAWAI UNIK (countDistinct pegawaiId) per lokasi_tipe
+  // 2. Penugasan Hari Ini dihitung di SQL:
+  // Segmen donut: JUMLAH TUGAS (count()) per lokasi_tipe
   const penugasanGrouped = await db
     .select({
       lokasiTipe: jadwal.lokasiTipe,
-      total: countDistinct(jadwal.pegawaiId),
+      total: count(jadwal.id),
     })
     .from(jadwal)
     .where(eq(jadwal.tanggal, todayStr))
@@ -120,7 +125,21 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardData> {
     .from(tiket)
     .where(eq(tiket.status, 'MENUNGGU'));
 
-  // c. Jadwal menunggu verifikasi laporan tugas
+  // c. Jadwal menunggu verifikasi laporan tugas (top 5 untuk panel antrean verifikasi)
+  const jadwalMenungguRows = await db
+    .select({
+      id: jadwal.id,
+      judul: jadwal.judul,
+      tanggal: jadwal.tanggal,
+      lokasiTipe: jadwal.lokasiTipe,
+      pegawaiName: user.name,
+    })
+    .from(jadwal)
+    .innerJoin(user, eq(jadwal.pegawaiId, user.id))
+    .where(eq(jadwal.status, 'MENUNGGU_VERIFIKASI'))
+    .orderBy(asc(jadwal.tanggal))
+    .limit(5);
+
   const [jadwalCountRow] = await db
     .select({ total: count() })
     .from(jadwal)
@@ -129,10 +148,13 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardData> {
   // d. PBG jatuh tempo <= 3 hari
   const pbgDueList = await getPbgDueSoon();
 
+  const sumOfSegments = loket + kecamatan + kantor + lainnya;
+
   return {
-    totalPegawai: pegawaiRow?.total ?? 0,
+    totalPegawai: Number(pegawaiRow?.total ?? 0),
     penugasanHariIni: {
-      total: totalPenugasan,
+      total: sumOfSegments, // Konsisten dengan jumlah seluruh segmen donut chart
+      pegawaiUnik: totalPenugasan, // Pegawai unik bertugas lintas seluruh lokasi
       loket,
       kecamatan,
       kantor,
@@ -143,8 +165,11 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardData> {
         count: totalStokMenipis,
         items: lowStockItems,
       },
-      tiketMenunggu: tiketCountRow?.total ?? 0,
-      jadwalMenunggu: jadwalCountRow?.total ?? 0,
+      tiketMenunggu: Number(tiketCountRow?.total ?? 0),
+      jadwalMenunggu: {
+        count: Number(jadwalCountRow?.total ?? 0),
+        items: jadwalMenungguRows,
+      },
       pbgDueSoon: {
         count: pbgDueList.length,
         items: pbgDueList.slice(0, 5).map((p) => ({

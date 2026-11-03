@@ -11,7 +11,7 @@ import { FilterSelect } from '@/components/shared/FilterSelect';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog';
 import { formatDateShort } from '@/lib/dates';
 import { deleteJadwalAction } from '../actions';
 
@@ -145,7 +145,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
             <span className="text-xs text-text-secondary">
               @{row.original.pegawaiUsername || '-'}
             </span>
-            <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-muted text-text-secondary">
+            <span className="text-[10px] font-sans font-medium uppercase px-1.5 py-0.5 rounded bg-muted text-text-secondary">
               {row.original.pegawaiBidang}
             </span>
           </div>
@@ -227,45 +227,46 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
   ];
 
   return (
-    <div className="space-y-4">
-      <DataTableToolbar
-        searchSlot={
-          <SearchInput
-            placeholder="Cari tugas, pegawai, lokasi..."
-            value={search}
-            onChange={setSearch}
+    <div className="space-y-4 min-w-0 w-full max-w-full">
+      <DataTable
+        toolbarSlot={
+          <DataTableToolbar
+            searchSlot={
+              <SearchInput
+                placeholder="Cari tugas, pegawai, lokasi..."
+                value={search}
+                onChange={setSearch}
+              />
+            }
+            filterSlot={
+              <>
+                <FilterSelect
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  placeholder="Status Tugas"
+                  allOptionLabel="Semua Status"
+                  options={[
+                    { label: 'Belum Dikerjakan', value: 'BELUM_DIKERJAKAN' },
+                    { label: 'Menunggu Verifikasi', value: 'MENUNGGU_VERIFIKASI' },
+                    { label: 'Selesai Terverifikasi', value: 'SELESAI' },
+                  ]}
+                />
+                <FilterSelect
+                  value={lokasiFilter}
+                  onChange={setLokasiFilter}
+                  placeholder="Tipe Lokasi"
+                  allOptionLabel="Semua Lokasi"
+                  options={[
+                    { label: 'Loket Pelayanan', value: 'LOKET' },
+                    { label: 'Layanan Kecamatan', value: 'KECAMATAN' },
+                    { label: 'Kantor Dinas', value: 'KANTOR' },
+                    { label: 'Lainnya / Lapangan', value: 'LAINNYA' },
+                  ]}
+                />
+              </>
+            }
           />
         }
-        filterSlot={
-          <>
-            <FilterSelect
-              value={statusFilter}
-              onChange={setStatusFilter}
-              placeholder="Status Tugas"
-              allOptionLabel="Semua Status"
-              options={[
-                { label: 'Belum Dikerjakan', value: 'BELUM_DIKERJAKAN' },
-                { label: 'Menunggu Verifikasi', value: 'MENUNGGU_VERIFIKASI' },
-                { label: 'Selesai Terverifikasi', value: 'SELESAI' },
-              ]}
-            />
-            <FilterSelect
-              value={lokasiFilter}
-              onChange={setLokasiFilter}
-              placeholder="Tipe Lokasi"
-              allOptionLabel="Semua Lokasi"
-              options={[
-                { label: 'Loket Pelayanan', value: 'LOKET' },
-                { label: 'Layanan Kecamatan', value: 'KECAMATAN' },
-                { label: 'Kantor Dinas', value: 'KANTOR' },
-                { label: 'Lainnya / Lapangan', value: 'LAINNYA' },
-              ]}
-            />
-          </>
-        }
-      />
-
-      <DataTable
         columns={columns}
         data={filteredData}
         emptyTitle="Tidak Ada Jadwal"
@@ -293,7 +294,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
             <DialogTitle>Bukti Pelaksanaan: {previewItem?.judul}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 pt-2">
+          <DialogBody className="space-y-4">
             <div>
               <div className="text-xs text-text-secondary">Pegawai Pelaksana</div>
               <div className="font-semibold text-text-primary">
@@ -316,7 +317,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
                     <img
                       src={previewFotoUrl}
                       alt="Foto Bukti Tugas"
-                      className="w-full max-h-96 object-contain rounded-panel border border-border bg-black/5"
+                      className="w-full max-h-96 object-contain rounded-panel border border-border bg-muted"
                     />
                   </div>
                 )}
@@ -336,7 +337,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
                 )}
               </div>
             )}
-          </div>
+          </DialogBody>
         </DialogContent>
       </Dialog>
     </div>

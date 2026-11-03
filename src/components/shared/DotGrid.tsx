@@ -23,6 +23,14 @@ export function DotGrid() {
     const spacing = 32;
     let mouse = { x: -1000, y: -1000 };
 
+    const getDotColors = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      return {
+        base: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(215, 215, 222, 0.6)',
+        hoverColor: isDark ? '129, 140, 248' : '99, 102, 241',
+      };
+    };
+
     const handleResize = () => {
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
@@ -36,7 +44,8 @@ export function DotGrid() {
 
     const drawStatic = () => {
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = 'rgba(215, 215, 222, 0.6)';
+      const { base } = getDotColors();
+      ctx.fillStyle = base;
       for (let x = 16; x < width; x += spacing) {
         for (let y = 16; y < height; y += spacing) {
           ctx.beginPath();
@@ -48,6 +57,7 @@ export function DotGrid() {
 
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
+      const { base, hoverColor } = getDotColors();
 
       for (let x = 16; x < width; x += spacing) {
         for (let y = 16; y < height; y += spacing) {
@@ -59,10 +69,10 @@ export function DotGrid() {
           ctx.beginPath();
           if (dist < maxDist) {
             const factor = 1 - dist / maxDist;
-            ctx.fillStyle = `rgba(99, 102, 241, ${0.35 + factor * 0.45})`;
+            ctx.fillStyle = `rgba(${hoverColor}, ${0.35 + factor * 0.45})`;
             ctx.arc(x, y, 1.5 + factor * 2, 0, Math.PI * 2);
           } else {
-            ctx.fillStyle = 'rgba(215, 215, 222, 0.6)';
+            ctx.fillStyle = base;
             ctx.arc(x, y, 1.2, 0, Math.PI * 2);
           }
           ctx.fill();

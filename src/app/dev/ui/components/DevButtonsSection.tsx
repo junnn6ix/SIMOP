@@ -12,7 +12,7 @@ export function DevButtonsSection() {
     >
       <Card className="p-6 space-y-6">
         <div className="space-y-3">
-          <h4 className="text-xs font-mono uppercase tracking-wider text-text-secondary">
+          <h4 className="text-xs font-sans font-medium uppercase tracking-wider text-text-secondary">
             Varian Utama
           </h4>
           <div className="flex flex-wrap items-center gap-3">
@@ -38,7 +38,7 @@ export function DevButtonsSection() {
         </div>
 
         <div className="space-y-3 pt-4 border-t border-border">
-          <h4 className="text-xs font-mono uppercase tracking-wider text-text-secondary">
+          <h4 className="text-xs font-sans font-medium uppercase tracking-wider text-text-secondary">
             Ukuran (Sizes)
           </h4>
           <div className="flex flex-wrap items-center gap-3">

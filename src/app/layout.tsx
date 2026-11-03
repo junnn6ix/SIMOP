@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { dmSans, generalSans, jetbrainsMono } from '@/lib/fonts';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
@@ -19,10 +20,18 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${generalSans.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+      className={`${generalSans.variable} ${dmSans.variable} ${jetbrainsMono.variable} overflow-x-hidden max-w-full`}
     >
-      <body className="min-h-screen bg-background text-text-primary font-sans antialiased selection:bg-primary/20 selection:text-primary">
-        {children}
+      <body className="min-h-screen bg-background text-text-primary font-sans antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden max-w-full">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -262,7 +262,7 @@ function JadwalFormContent({ pegawaiOptions, onClose }: JadwalFormContentProps) 
                       @{pegawai.username}
                     </span>
                   </div>
-                  <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-muted text-text-secondary">
+                  <span className="text-[10px] uppercase font-sans font-medium px-1.5 py-0.5 rounded bg-muted text-text-secondary">
                     {pegawai.bidang}
                   </span>
                 </div>

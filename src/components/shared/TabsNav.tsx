@@ -74,7 +74,7 @@ export function TabsNav({
             {tab.count !== undefined && (
               <span
                 className={cn(
-                  'ml-1 rounded-full px-2 py-0.5 text-xs font-mono font-semibold',
+                  'ml-1 rounded-full px-2 py-0.5 text-xs font-sans font-medium tabular-nums',
                   isActive
                     ? 'bg-primary/10 text-primary'
                     : 'bg-muted text-text-secondary'

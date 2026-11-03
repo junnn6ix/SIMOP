@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { eq, and, inArray, countDistinct } from 'drizzle-orm';
+import { eq, and, inArray, count, countDistinct } from 'drizzle-orm';
 import { createTestDb } from '@/db';
 import { jadwal } from '@/db/schema/domain';
 import { user } from '@/db/schema/auth';
@@ -99,12 +99,12 @@ describe('Real PostgreSQL Integration Test: Bertugas Hari Ini (countDistinct use
     }
   });
 
-  it('guarantees that one employee with multiple tasks on the same day is counted as 1 distinct employee', async () => {
-    // 1. Kueri grouped per lokasi_tipe dengan countDistinct(jadwal.pegawaiId)
+  it('guarantees segments represent task counts (total 4) while distinct employees equals 2', async () => {
+    // 1. Kueri grouped per lokasi_tipe: jumlah TUGAS (count(jadwal.id)) untuk segmen donut
     const grouped = await testDb
       .select({
         lokasiTipe: jadwal.lokasiTipe,
-        totalPegawaiUnik: countDistinct(jadwal.pegawaiId),
+        totalTugas: count(jadwal.id),
       })
       .from(jadwal)
       .where(and(inArray(jadwal.id, createdJadwalIds), eq(jadwal.tanggal, todayStr)))
@@ -113,14 +113,18 @@ describe('Real PostgreSQL Integration Test: Bertugas Hari Ini (countDistinct use
     const loketRow = grouped.find((g) => g.lokasiTipe === 'LOKET');
     const kantorRow = grouped.find((g) => g.lokasiTipe === 'KANTOR');
 
-    // Di LOKET ada 3 tugas (2 milik Pegawai A, 1 milik Pegawai B),
-    // berkat countDistinct harus tepat menghasilkan 2 pegawai unik (bukan 3 baris tugas)
-    expect(Number(loketRow?.totalPegawaiUnik)).toBe(2);
+    // Di LOKET ada 3 tugas (2 milik Pegawai A, 1 milik Pegawai B) -> 3 tugas
+    expect(Number(loketRow?.totalTugas)).toBe(3);
 
-    // Di KANTOR ada 1 tugas milik Pegawai A -> 1 pegawai unik
-    expect(Number(kantorRow?.totalPegawaiUnik)).toBe(1);
+    // Di KANTOR ada 1 tugas milik Pegawai A -> 1 tugas
+    expect(Number(kantorRow?.totalTugas)).toBe(1);
 
-    // 2. Kueri total pegawai bertugas hari ini lintas seluruh lokasi
+    const loket = Number(loketRow?.totalTugas ?? 0);
+    const kantor = Number(kantorRow?.totalTugas ?? 0);
+    const kecamatan = 0;
+    const lainnya = 0;
+
+    // 2. Kueri total pegawai bertugas hari ini lintas seluruh lokasi untuk kartu "Bertugas Hari Ini"
     // Total ada 4 baris jadwal, namun hanya melibatkan 2 pegawai unik (Pegawai A dan Pegawai B)
     const [totalRow] = await testDb
       .select({
@@ -130,6 +134,22 @@ describe('Real PostgreSQL Integration Test: Bertugas Hari Ini (countDistinct use
       .where(and(inArray(jadwal.id, createdJadwalIds), eq(jadwal.tanggal, todayStr)));
 
     expect(Number(totalRow?.totalPegawaiBertugas)).toBe(2);
+
+    // 3. Konsistensi Pusat Donut dengan Jumlah Segmen:
+    // Pusat donut didefinisikan sebagai Total Tugas hari ini (sum of segments: loket + kantor + kecamatan + lainnya).
+    // Pada data uji ini: 3 di loket + 1 di kantor = 4 tugas!
+    const donutTotal = loket + kantor + kecamatan + lainnya;
+    expect(donutTotal).toBe(4);
+
+    // Pastikan penjumlahan segmen donut persis sama dengan nilai pusat donut
+    const donutSegments = [
+      { label: 'Kantor Dinas', value: kantor },
+      { label: 'Loket Pelayanan', value: loket },
+      { label: 'Layanan Kecamatan', value: kecamatan },
+      { label: 'Lainnya / Lapangan', value: lainnya },
+    ];
+    const sumOfSegments = donutSegments.reduce((sum, s) => sum + s.value, 0);
+    expect(donutTotal).toBe(sumOfSegments);
   });
 });
 

@@ -13,17 +13,27 @@ const config: Config = {
       colors: {
         background: 'var(--color-background)',
         surface: 'var(--color-surface)',
+        'surface-2': 'var(--color-surface-2)',
+        overlay: 'var(--color-overlay)',
         border: 'var(--color-border)',
+        'border-strong': 'var(--color-border-strong)',
         input: 'var(--color-border)',
         ring: 'var(--color-primary)',
         primary: {
           DEFAULT: 'var(--color-primary)',
           hover: 'var(--color-primary-hover)',
           foreground: 'var(--color-surface)',
+          text: 'var(--color-primary-text)',
         },
         'text-primary': 'var(--color-text-primary)',
         'text-secondary': 'var(--color-text-secondary)',
         'text-neutral': 'var(--color-text-neutral)',
+        chart: {
+          1: 'var(--color-chart-1)',
+          2: 'var(--color-chart-2)',
+          3: 'var(--color-chart-3)',
+          4: 'var(--color-chart-4)',
+        },
         success: {
           DEFAULT: 'var(--color-success)',
           tint: 'var(--color-success-tint)',

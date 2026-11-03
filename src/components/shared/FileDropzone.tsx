@@ -157,7 +157,7 @@ export function FileDropzone({
               <p className="text-xs sm:text-sm font-medium text-text-primary truncate">
                 {value.name}
               </p>
-              <p className="text-[11px] text-text-secondary font-mono">
+              <p className="text-[11px] text-text-secondary font-sans tabular-nums">
                 {(value.size / (1024 * 1024)).toFixed(2)} MB
               </p>
             </div>

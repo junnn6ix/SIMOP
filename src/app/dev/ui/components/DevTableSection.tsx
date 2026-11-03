@@ -73,7 +73,7 @@ export function DevTableSection() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <span className="font-mono font-bold">{row.original.stok}</span>
-          <span className="text-xs text-text-neutral">/ Min {row.original.limitStok}</span>
+          <span className="text-xs text-text-secondary">/ Min {row.original.limitStok}</span>
         </div>
       ),
     },

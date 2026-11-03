@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -85,71 +86,73 @@ function PegawaiFormContent({ initialData, onClose }: PegawaiFormContentProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-      <FormField label="Nama Lengkap" required>
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Contoh: Budi Santoso, S.Kom."
-          required
-          disabled={isLoading}
-        />
-      </FormField>
-
-      {!isEditing && (
-        <FormField
-          label="Nama Pengguna (Username)"
-          required
-          description="Hanya huruf kecil, angka, dan underscore"
-        >
+    <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <DialogBody className="space-y-4">
+        <FormField label="Nama Lengkap" required>
           <Input
-            value={username}
-            onChange={(e) => setUsername(e.target.value.toLowerCase())}
-            placeholder="Contoh: budi_santoso"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Contoh: Budi Santoso, S.Kom."
             required
             disabled={isLoading}
           />
         </FormField>
-      )}
 
-      {!isEditing && (
-        <FormField label="Kata Sandi Awal" required description="Minimal 8 karakter">
-          <PasswordInput
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Masukkan kata sandi..."
+        {!isEditing && (
+          <FormField
+            label="Nama Pengguna (Username)"
             required
+            description="Hanya huruf kecil, angka, dan underscore"
+          >
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase())}
+              placeholder="Contoh: budi_santoso"
+              required
+              disabled={isLoading}
+            />
+          </FormField>
+        )}
+
+        {!isEditing && (
+          <FormField label="Kata Sandi Awal" required description="Minimal 8 karakter">
+            <PasswordInput
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Masukkan kata sandi..."
+              required
+              disabled={isLoading}
+            />
+          </FormField>
+        )}
+
+        <FormField label="NIP (Nomor Induk Pegawai)" description="Opsional / Boleh dikosongkan">
+          <Input
+            value={nip}
+            onChange={(e) => setNip(e.target.value)}
+            placeholder="Contoh: 198805122010011002"
             disabled={isLoading}
           />
         </FormField>
-      )}
 
-      <FormField label="NIP (Nomor Induk Pegawai)" description="Opsional / Boleh dikosongkan">
-        <Input
-          value={nip}
-          onChange={(e) => setNip(e.target.value)}
-          placeholder="Contoh: 198805122010011002"
-          disabled={isLoading}
-        />
-      </FormField>
-
-      <FormField label="Bidang Tugas Dinas" required>
-        <Select
-          value={bidang}
-          onValueChange={(val: any) => setBidang(val)}
-          disabled={isLoading}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Pilih Bidang" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="SEKRETARIAT">Sekretariat</SelectItem>
-            <SelectItem value="PTSP">Pelayanan Terpadu Satu Pintu (PTSP)</SelectItem>
-            <SelectItem value="PM">Penanaman Modal (PM)</SelectItem>
-            <SelectItem value="PENGAWASAN">Pengawasan & Pengendalian</SelectItem>
-          </SelectContent>
-        </Select>
-      </FormField>
+        <FormField label="Bidang Tugas Dinas" required>
+          <Select
+            value={bidang}
+            onValueChange={(val: any) => setBidang(val)}
+            disabled={isLoading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Pilih Bidang" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="SEKRETARIAT">Sekretariat</SelectItem>
+              <SelectItem value="PTSP">Pelayanan Terpadu Satu Pintu (PTSP)</SelectItem>
+              <SelectItem value="PM">Penanaman Modal (PM)</SelectItem>
+              <SelectItem value="PENGAWASAN">Pengawasan & Pengendalian</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormField>
+      </DialogBody>
 
       <DialogFooter className="gap-2 sm:gap-0 pt-2">
         <Button

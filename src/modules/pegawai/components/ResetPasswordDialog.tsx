@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/shared/FormField';
@@ -57,16 +58,18 @@ function ResetPasswordFormContent({ user, onClose }: ResetPasswordFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-      <FormField label="Kata Sandi Baru" required description="Minimal 8 karakter">
-        <PasswordInput
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="Masukkan kata sandi baru..."
-          required
-          disabled={isLoading}
-        />
-      </FormField>
+    <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <DialogBody className="space-y-4">
+        <FormField label="Kata Sandi Baru" required description="Minimal 8 karakter">
+          <PasswordInput
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Masukkan kata sandi baru..."
+            required
+            disabled={isLoading}
+          />
+        </FormField>
+      </DialogBody>
 
       <DialogFooter className="gap-2 sm:gap-0 pt-2">
         <Button

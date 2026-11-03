@@ -111,7 +111,7 @@ export function PegawaiTable({ data }: PegawaiTableProps) {
       accessorKey: 'bidang',
       header: 'Bidang Dinas',
       cell: ({ row }) => (
-        <span className="font-mono text-xs font-medium uppercase px-2 py-0.5 rounded bg-muted text-text-primary">
+        <span className="font-sans text-xs font-medium uppercase px-2 py-0.5 rounded bg-muted text-text-primary">
           {row.original.bidang}
         </span>
       ),
@@ -214,32 +214,33 @@ export function PegawaiTable({ data }: PegawaiTableProps) {
   ];
 
   return (
-    <div className="space-y-4">
-      <DataTableToolbar
-        searchSlot={
-          <SearchInput
-            placeholder="Cari nama, username, NIP..."
-            value={search}
-            onChange={setSearch}
-          />
-        }
-        filterSlot={
-          <FilterSelect
-            value={bidangFilter}
-            onChange={setBidangFilter}
-            placeholder="Bidang Dinas"
-            allOptionLabel="Semua Bidang"
-            options={[
-              { label: 'Sekretariat', value: 'SEKRETARIAT' },
-              { label: 'PTSP', value: 'PTSP' },
-              { label: 'Penanaman Modal (PM)', value: 'PM' },
-              { label: 'Pengawasan & Pengendalian', value: 'PENGAWASAN' },
-            ]}
-          />
-        }
-      />
-
+    <div className="space-y-4 min-w-0 w-full max-w-full">
       <DataTable
+        toolbarSlot={
+          <DataTableToolbar
+            searchSlot={
+              <SearchInput
+                placeholder="Cari nama, username, NIP..."
+                value={search}
+                onChange={setSearch}
+              />
+            }
+            filterSlot={
+              <FilterSelect
+                value={bidangFilter}
+                onChange={setBidangFilter}
+                placeholder="Bidang Dinas"
+                allOptionLabel="Semua Bidang"
+                options={[
+                  { label: 'Sekretariat', value: 'SEKRETARIAT' },
+                  { label: 'PTSP', value: 'PTSP' },
+                  { label: 'Penanaman Modal (PM)', value: 'PM' },
+                  { label: 'Pengawasan & Pengendalian', value: 'PENGAWASAN' },
+                ]}
+              />
+            }
+          />
+        }
         columns={columns}
         data={filteredData}
         emptyTitle="Tidak Ada Pegawai"

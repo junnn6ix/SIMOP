@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -92,98 +93,100 @@ function BarangFormContent({ initialData, onClose }: BarangFormContentProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-      <FormField label="Nama Barang" required>
-        <Input
-          value={nama}
-          onChange={(e) => setNama(e.target.value)}
-          placeholder="Contoh: Kertas HVS A4 80gsm"
-          required
-          disabled={isLoading}
-        />
-      </FormField>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Kategori Barang" required>
-          <Select
-            value={kategori}
-            onValueChange={(val: any) => setKategori(val)}
-            disabled={isLoading}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih Kategori" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ATK">ATK (Alat Tulis Kantor / Habis Pakai)</SelectItem>
-              <SelectItem value="ASET">ASET (Peralatan / Inventaris Tetap)</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-
-        <FormField label="Satuan" required>
+    <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <DialogBody className="space-y-4">
+        <FormField label="Nama Barang" required>
           <Input
-            value={satuan}
-            onChange={(e) => setSatuan(e.target.value)}
-            placeholder="Contoh: Rim, Pcs, Box, Unit"
+            value={nama}
+            onChange={(e) => setNama(e.target.value)}
+            placeholder="Contoh: Kertas HVS A4 80gsm"
             required
             disabled={isLoading}
           />
         </FormField>
-      </div>
 
-      {!isEditing && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            label="Kode Barang"
-            description="Boleh dikosongkan (otomatis dibuatkan sistem)"
-          >
-            <Input
-              value={kodeBarang}
-              onChange={(e) => setKodeBarang(e.target.value.toUpperCase())}
-              placeholder="Contoh: BRG-ATK-001"
+          <FormField label="Kategori Barang" required>
+            <Select
+              value={kategori}
+              onValueChange={(val: any) => setKategori(val)}
               disabled={isLoading}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih Kategori" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ATK">ATK (Alat Tulis Kantor / Habis Pakai)</SelectItem>
+                <SelectItem value="ASET">ASET (Peralatan / Inventaris Tetap)</SelectItem>
+              </SelectContent>
+            </Select>
           </FormField>
 
-          <FormField label="Stok Awal" required>
+          <FormField label="Satuan" required>
             <Input
-              type="number"
-              min={0}
-              value={stok}
-              onChange={(e) => setStok(Number(e.target.value))}
+              value={satuan}
+              onChange={(e) => setSatuan(e.target.value)}
+              placeholder="Contoh: Rim, Pcs, Box, Unit"
+              required
               disabled={isLoading}
             />
           </FormField>
         </div>
-      )}
 
-      <FormField
-        label="Batas Minimal Stok (Limit Stok)"
-        description="Peringatan stok menipis otomatis jika stok <= angka ini"
-        required
-      >
-        <Input
-          type="number"
-          min={0}
-          value={limitStok}
-          onChange={(e) => setLimitStok(Number(e.target.value))}
-          disabled={isLoading}
+        {!isEditing && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              label="Kode Barang"
+              description="Boleh dikosongkan (otomatis dibuatkan sistem)"
+            >
+              <Input
+                value={kodeBarang}
+                onChange={(e) => setKodeBarang(e.target.value.toUpperCase())}
+                placeholder="Contoh: BRG-ATK-001"
+                disabled={isLoading}
+              />
+            </FormField>
+
+            <FormField label="Stok Awal" required>
+              <Input
+                type="number"
+                min={0}
+                value={stok}
+                onChange={(e) => setStok(Number(e.target.value))}
+                disabled={isLoading}
+              />
+            </FormField>
+          </div>
+        )}
+
+        <FormField
+          label="Batas Minimal Stok (Limit Stok)"
+          description="Peringatan stok menipis otomatis jika stok <= angka ini"
           required
-        />
-      </FormField>
+        >
+          <Input
+            type="number"
+            min={0}
+            value={limitStok}
+            onChange={(e) => setLimitStok(Number(e.target.value))}
+            disabled={isLoading}
+            required
+          />
+        </FormField>
 
-      <FormField
-        label="Deskripsi / Catatan Spesifikasi"
-        description="Spesifikasi teknis, merk, atau lokasi simpan (opsional)"
-      >
-        <Textarea
-          value={deskripsi}
-          onChange={(e) => setDeskripsi(e.target.value)}
-          placeholder="Deskripsi spesifikasi barang..."
-          rows={3}
-          disabled={isLoading}
-        />
-      </FormField>
+        <FormField
+          label="Deskripsi / Catatan Spesifikasi"
+          description="Spesifikasi teknis, merk, atau lokasi simpan (opsional)"
+        >
+          <Textarea
+            value={deskripsi}
+            onChange={(e) => setDeskripsi(e.target.value)}
+            placeholder="Deskripsi spesifikasi barang..."
+            rows={3}
+            disabled={isLoading}
+          />
+        </FormField>
+      </DialogBody>
 
       <DialogFooter className="gap-2 sm:gap-0 pt-2">
         <Button

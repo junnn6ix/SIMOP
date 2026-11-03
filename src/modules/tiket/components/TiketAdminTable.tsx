@@ -32,6 +32,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { formatDateTime } from '@/lib/dates';
@@ -196,8 +197,8 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
             <span
               className={
                 row.original.barangStok < row.original.jumlah &&
-                row.original.jenis === 'PERMINTAAN_BARANG' &&
-                row.original.status === 'MENUNGGU'
+                  row.original.jenis === 'PERMINTAAN_BARANG' &&
+                  row.original.status === 'MENUNGGU'
                   ? 'text-error font-semibold'
                   : 'text-text-secondary'
               }
@@ -216,11 +217,10 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
         return (
           <div>
             <span
-              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold border ${
-                isPermintaan
+              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold border ${isPermintaan
                   ? 'bg-brand/10 text-brand border-brand/20'
                   : 'bg-warning-tint text-warning-dark border-warning/30'
-              }`}
+                }`}
             >
               {isPermintaan ? 'Permintaan Barang' : 'Lapor Kerusakan'}
             </span>
@@ -344,45 +344,46 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
 
   return (
     <>
-      <div className="space-y-4">
-        <DataTableToolbar
-          searchSlot={
-            <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder="Cari nomor tiket, pemohon, barang..."
+      <div className="space-y-4 min-w-0 w-full max-w-full">
+        <DataTable
+          toolbarSlot={
+            <DataTableToolbar
+              searchSlot={
+                <SearchInput
+                  value={search}
+                  onChange={setSearch}
+                  placeholder="Cari nomor tiket, pemohon, barang..."
+                />
+              }
+              filterSlot={
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                  <FilterSelect
+                    value={statusFilter}
+                    onChange={setStatusFilter}
+                    allOptionLabel="Semua Status"
+                    options={[
+                      { value: 'MENUNGGU', label: 'Menunggu' },
+                      { value: 'ACC', label: 'Disetujui (ACC)' },
+                      { value: 'MAINTENANCE', label: 'Maintenance' },
+                      { value: 'SELESAI', label: 'Selesai' },
+                      { value: 'DITOLAK', label: 'Ditolak' },
+                    ]}
+                    className="w-full sm:w-[160px]"
+                  />
+                  <FilterSelect
+                    value={jenisFilter}
+                    onChange={setJenisFilter}
+                    allOptionLabel="Semua Layanan"
+                    options={[
+                      { value: 'PERMINTAAN_BARANG', label: 'Permintaan Barang' },
+                      { value: 'LAPOR_KERUSAKAN', label: 'Lapor Kerusakan' },
+                    ]}
+                    className="w-full sm:w-[180px]"
+                  />
+                </div>
+              }
             />
           }
-          filterSlot={
-            <div className="flex flex-wrap items-center gap-2">
-              <FilterSelect
-                value={statusFilter}
-                onChange={setStatusFilter}
-                allOptionLabel="Semua Status"
-                options={[
-                  { value: 'MENUNGGU', label: 'Menunggu' },
-                  { value: 'ACC', label: 'Disetujui (ACC)' },
-                  { value: 'MAINTENANCE', label: 'Maintenance' },
-                  { value: 'SELESAI', label: 'Selesai' },
-                  { value: 'DITOLAK', label: 'Ditolak' },
-                ]}
-                className="w-[160px]"
-              />
-              <FilterSelect
-                value={jenisFilter}
-                onChange={setJenisFilter}
-                allOptionLabel="Semua Layanan"
-                options={[
-                  { value: 'PERMINTAAN_BARANG', label: 'Permintaan Barang' },
-                  { value: 'LAPOR_KERUSAKAN', label: 'Lapor Kerusakan' },
-                ]}
-                className="w-[180px]"
-              />
-            </div>
-          }
-        />
-
-        <DataTable
           columns={columns}
           data={filteredData}
           emptyTitle="Belum ada tiket layanan"
@@ -401,7 +402,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
           </DialogHeader>
 
           {accTarget && (
-            <div className="space-y-4 py-2">
+            <DialogBody className="space-y-4">
               <div className="rounded-lg border border-border bg-neutral-tint/40 p-3 space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-text-secondary">Nomor Tiket:</span>
@@ -430,11 +431,10 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                 <div className="flex justify-between">
                   <span className="text-text-secondary">Stok Tersedia:</span>
                   <span
-                    className={`font-bold ${
-                      accTarget.barangStok >= accTarget.jumlah
+                    className={`font-bold ${accTarget.barangStok >= accTarget.jumlah
                         ? 'text-success'
                         : 'text-error'
-                    }`}
+                      }`}
                   >
                     {accTarget.barangStok} {accTarget.barangSatuan || 'Pcs'}
                   </span>
@@ -462,7 +462,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                   className="resize-none h-20 text-xs"
                 />
               </FormField>
-            </div>
+            </DialogBody>
           )}
 
           <DialogFooter className="gap-2 sm:gap-0 pt-2">
@@ -483,7 +483,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                 (accTarget?.jenis === 'PERMINTAAN_BARANG' &&
                   accTarget.barangStok < accTarget.jumlah)
               }
-              className="bg-success text-white hover:bg-success-dark"
+              className="bg-success text-surface hover:bg-success-dark"
             >
               {isSubmittingAcc ? 'Memproses...' : 'Setujui (ACC)'}
             </Button>
@@ -501,7 +501,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <DialogBody className="space-y-4">
             <FormField label="Alasan Penolakan" required>
               <Textarea
                 placeholder="Masukkan alasan penolakan tiket ini..."
@@ -510,7 +510,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                 className="resize-none h-24 text-xs"
               />
             </FormField>
-          </div>
+          </DialogBody>
 
           <DialogFooter className="gap-2 sm:gap-0 pt-2">
             <Button

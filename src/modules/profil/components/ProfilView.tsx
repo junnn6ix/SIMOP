@@ -74,7 +74,7 @@ export function ProfilView({ user }: ProfilViewProps) {
               <h3 className="font-display font-bold text-text-primary text-base">
                 {user.name}
               </h3>
-              <p className="text-xs text-text-secondary font-mono">@{user.username}</p>
+              <p className="text-xs text-text-secondary font-sans">@{user.username}</p>
               <div className="mt-1">
                 <StatusBadge
                   status={user.aktif ? 'SELESAI' : 'DITOLAK'}
@@ -117,7 +117,7 @@ export function ProfilView({ user }: ProfilViewProps) {
           </div>
 
           <div className="mt-6 pt-4 border-t border-border">
-            <p className="text-[11px] text-text-neutral leading-relaxed">
+            <p className="text-[11px] text-text-secondary leading-relaxed">
               Data identitas pegawai dikelola secara terpusat oleh administrator dinas. Jika terdapat kekeliruan data NIP atau mutasi bidang, hubungi Subbag Kepegawaian.
             </p>
           </div>

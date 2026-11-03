@@ -19,13 +19,14 @@ export interface DonutChartProps {
 
 export function DonutChart({
   segments,
-  size = 140,
-  strokeWidth = 16,
-  centerLabel,
+  size = 150,
+  strokeWidth = 12,
+  centerLabel = 'Total Tugas',
   centerValue,
   showLegend = true,
   className,
 }: DonutChartProps) {
+  // Total dihitung langsung dari jumlah seluruh segmen
   const total = segments.reduce((sum, s) => sum + s.value, 0);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -35,7 +36,7 @@ export function DonutChart({
   return (
     <div
       className={cn(
-        'flex flex-col sm:flex-row items-center gap-6 justify-center',
+        'flex flex-col sm:flex-row items-center gap-6 justify-center select-none',
         className
       )}
     >
@@ -61,6 +62,7 @@ export function DonutChart({
 
           {total > 0 &&
             segments.map((seg, idx) => {
+              if (seg.value <= 0) return null;
               const percent = seg.value / total;
               const dashLength = percent * circumference;
               const dashOffset = -accumulatedPercent * circumference;
@@ -83,21 +85,19 @@ export function DonutChart({
             })}
         </svg>
 
-        {/* Center label/value */}
+        {/* Center label & total value */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
-          <span className="text-lg font-bold font-display text-text-primary">
+          <span className="text-2xl font-bold font-display tracking-tight text-text-primary leading-none">
             {centerValue !== undefined ? centerValue : total}
           </span>
-          {centerLabel && (
-            <span className="text-[10px] uppercase tracking-wider text-text-secondary">
-              {centerLabel}
-            </span>
-          )}
+          <span className="text-2xs font-sans font-medium uppercase tracking-wider text-text-secondary mt-1">
+            {centerLabel}
+          </span>
         </div>
       </div>
 
       {showLegend && (
-        <div className="flex flex-col gap-2 min-w-[140px]">
+        <div className="flex flex-col gap-2 min-w-[150px]">
           {segments.map((seg, idx) => {
             const pct = total > 0 ? Math.round((seg.value / total) * 100) : 0;
             return (
@@ -105,18 +105,18 @@ export function DonutChart({
                 key={idx}
                 className="flex items-center justify-between text-xs"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <span
                     className="h-2.5 w-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: seg.color }}
                   />
-                  <span className="text-text-secondary">{seg.label}</span>
+                  <span className="text-text-secondary truncate">{seg.label}</span>
                 </div>
-                <div className="flex items-center gap-1.5 font-mono">
+                <div className="flex items-center gap-1.5 font-sans tabular-nums shrink-0 ml-2">
                   <span className="font-semibold text-text-primary">
                     {seg.value}
                   </span>
-                  <span className="text-[10px] text-text-neutral">
+                  <span className="text-2xs text-text-secondary">
                     ({pct}%)
                   </span>
                 </div>
@@ -128,4 +128,3 @@ export function DonutChart({
     </div>
   );
 }
-

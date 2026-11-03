@@ -36,7 +36,7 @@ export function DataTablePagination<TData>({
         baris data
       </div>
 
-      <div className="flex items-center gap-4 sm:gap-6">
+      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
         <div className="flex items-center space-x-2">
           <p className="text-xs text-text-secondary">Baris per halaman:</p>
           <Select
