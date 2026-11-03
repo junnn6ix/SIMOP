@@ -61,7 +61,7 @@ export function AlertCard({
         </div>
         <span
           className={cn(
-            'inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full text-xs font-bold font-mono border',
+            'inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full text-xs font-bold font-sans tabular-nums border',
             currentTone.badge
           )}
         >

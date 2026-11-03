@@ -19,7 +19,7 @@ export function DevDataVisualsSection() {
       <div className="space-y-6">
         {/* Avatars */}
         <Card className="p-6 space-y-3">
-          <h4 className="text-xs font-mono uppercase tracking-wider text-text-secondary">
+          <h4 className="text-xs font-sans font-medium uppercase tracking-wider text-text-secondary">
             Avatar Inisial Lokal (sm, md, lg, xl - 9999px)
           </h4>
           <div className="flex flex-wrap items-center gap-4">

@@ -74,7 +74,7 @@ export function ProfilView({ user }: ProfilViewProps) {
               <h3 className="font-display font-bold text-text-primary text-base">
                 {user.name}
               </h3>
-              <p className="text-xs text-text-secondary font-mono">@{user.username}</p>
+              <p className="text-xs text-text-secondary font-sans">@{user.username}</p>
               <div className="mt-1">
                 <StatusBadge
                   status={user.aktif ? 'SELESAI' : 'DITOLAK'}

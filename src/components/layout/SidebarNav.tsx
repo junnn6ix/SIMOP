@@ -75,7 +75,7 @@ export function SidebarNav({
         return (
           <div key={group.label || `group-${groupIdx}`} className="flex flex-col gap-1">
             {group.label && !collapsed && (
-              <p className="px-2.5 mb-1 text-2xs font-mono uppercase tracking-wider text-text-secondary">
+              <p className="px-2.5 mb-1 text-2xs font-sans font-medium uppercase tracking-wider text-text-secondary">
                 {group.label}
               </p>
             )}
@@ -126,7 +126,7 @@ export function SidebarNav({
                       )}
 
                       {!collapsed && item.badge !== undefined && (
-                        <span className="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs font-mono font-medium bg-muted text-text-secondary">
+                        <span className="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs font-sans font-medium bg-muted text-text-secondary">
                           {item.badge}
                         </span>
                       )}

@@ -19,7 +19,7 @@ export function DataTableToolbar({
   return (
     <div
       className={cn(
-        'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-3',
+        'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3',
         className
       )}
     >

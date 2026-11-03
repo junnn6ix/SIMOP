@@ -67,11 +67,16 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className={cn('space-y-4', className)}>
-      {toolbarSlot}
+    <div className={cn('rounded-card border border-border bg-surface overflow-hidden', className)}>
+      {/* Integrated Header Toolbar inside the same card */}
+      {toolbarSlot && (
+        <div className="p-4 border-b border-border bg-surface">
+          {toolbarSlot}
+        </div>
+      )}
 
       {/* Desktop Table & Optional Mobile Card View */}
-      <div className="rounded-card border border-border bg-surface overflow-hidden">
+      <div>
         {/* Mobile card mode if specified */}
         {asCardOnMobile && renderCard && (
           <div className="grid grid-cols-1 gap-3 p-4 md:hidden">
@@ -89,7 +94,7 @@ export function DataTable<TData, TValue>({
 
         <div className={cn('w-full overflow-x-auto', asCardOnMobile && 'hidden md:block')}>
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-border bg-muted/60 text-xs font-semibold uppercase text-text-secondary">
+            <thead className="border-b border-border bg-muted/70 text-xs font-semibold uppercase tracking-wider text-text-primary">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
@@ -97,7 +102,7 @@ export function DataTable<TData, TValue>({
                     return (
                       <th
                         key={header.id}
-                        className="px-4 py-3 font-medium whitespace-nowrap"
+                        className="px-4 py-3.5 font-semibold whitespace-nowrap text-text-primary"
                       >
                         {header.isPlaceholder ? null : canSort ? (
                           <button
@@ -128,7 +133,7 @@ export function DataTable<TData, TValue>({
                 table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="hover:bg-muted/40 transition-colors"
+                    className="hover:bg-muted/40 transition-colors duration-150"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-4 py-3 align-middle text-text-primary">

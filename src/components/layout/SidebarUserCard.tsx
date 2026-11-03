@@ -98,7 +98,7 @@ export function SidebarUserCard({
                 @{user.username} &bull; {user.role}
               </p>
               {user.bidang && (
-                <p className="text-[10px] text-text-secondary uppercase tracking-wider font-mono pt-1">
+                <p className="text-[10px] text-text-secondary uppercase tracking-wider font-sans font-medium pt-1">
                   {user.bidang}
                 </p>
               )}

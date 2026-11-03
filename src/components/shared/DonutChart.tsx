@@ -90,7 +90,7 @@ export function DonutChart({
           <span className="text-2xl font-bold font-display tracking-tight text-text-primary leading-none">
             {centerValue !== undefined ? centerValue : total}
           </span>
-          <span className="text-2xs font-mono uppercase tracking-wider text-text-secondary mt-1">
+          <span className="text-2xs font-sans font-medium uppercase tracking-wider text-text-secondary mt-1">
             {centerLabel}
           </span>
         </div>
@@ -112,7 +112,7 @@ export function DonutChart({
                   />
                   <span className="text-text-secondary truncate">{seg.label}</span>
                 </div>
-                <div className="flex items-center gap-1.5 font-mono shrink-0 ml-2">
+                <div className="flex items-center gap-1.5 font-sans tabular-nums shrink-0 ml-2">
                   <span className="font-semibold text-text-primary">
                     {seg.value}
                   </span>

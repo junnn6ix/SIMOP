@@ -5,6 +5,7 @@ import { CardGroup } from '@/components/shared/CardGroup';
 import { StatCard } from '@/components/shared/StatCard';
 import { InfoCard } from '@/components/shared/InfoCard';
 import { AlertCard } from '@/components/shared/AlertCard';
+import { AdminDashboardPanels } from '@/modules/dashboard/components/AdminDashboardPanels';
 
 export function DevCardsSection() {
   return (
@@ -78,6 +79,34 @@ export function DevCardsSection() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Dashboard Operational Panels Showcase */}
+        <div className="space-y-3 pt-4 border-t border-border">
+          <h4 className="text-xs font-sans font-medium uppercase tracking-wider text-text-secondary">
+            Panel Operasional Antrean & Stok (AdminDashboardPanels)
+          </h4>
+          <AdminDashboardPanels
+            alerts={{
+              jadwalMenunggu: {
+                count: 3,
+                items: [
+                  { id: '1', judul: 'Pelayanan Perizinan Loket 1', pegawaiName: 'Ahmad Fauzi', tanggal: '2026-11-04', lokasiTipe: 'LOKET' },
+                  { id: '2', judul: 'Verifikasi Lapangan Bangunan PBG', pegawaiName: 'Budi Santoso', tanggal: '2026-11-04', lokasiTipe: 'KECAMATAN' },
+                ],
+              },
+              stokMenipis: {
+                count: 2,
+                items: [
+                  { id: '1', nama: 'Kertas HVS A4 80gr', stok: 3, limitStok: 10, satuan: 'rim' },
+                  { id: '2', nama: 'Tinta Printer Epson L3110', stok: 1, limitStok: 5, satuan: 'botol' },
+                ],
+              },
+              tiketMenunggu: 2,
+              jadwalMenungguCount: 3,
+              pbgDueSoon: { count: 1, items: [] },
+            } as any}
+          />
         </div>
       </div>
     </Section>

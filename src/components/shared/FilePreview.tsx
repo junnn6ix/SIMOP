@@ -74,7 +74,7 @@ export function FilePreview({
             <p className="text-xs font-semibold text-text-primary truncate">
               {fileName}
             </p>
-            <p className="text-[10px] text-text-secondary uppercase font-mono">
+            <p className="text-[10px] text-text-secondary uppercase font-sans font-medium">
               {isPdf ? 'Dokumen PDF' : 'Gambar / Foto'}
             </p>
           </div>

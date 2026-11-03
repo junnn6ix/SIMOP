@@ -21,7 +21,7 @@ export function AdminDashboardPanels({ alerts }: AdminDashboardPanelsProps) {
               <h3 className="font-display font-bold text-text-primary text-sm">
                 Antrean Verifikasi
               </h3>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs font-mono font-medium bg-muted text-text-secondary">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs font-sans font-medium bg-muted text-text-secondary">
                 {alerts.jadwalMenunggu.count}
               </span>
             </div>
@@ -47,17 +47,17 @@ export function AdminDashboardPanels({ alerts }: AdminDashboardPanelsProps) {
               {alerts.jadwalMenunggu.items.map((item) => (
                 <li
                   key={item.id}
-                  className="py-2 px-1 flex items-center justify-between gap-2 hover:bg-muted/40 rounded transition-colors"
+                  className="py-2.5 px-1 flex items-center justify-between gap-2 hover:bg-muted/40 rounded transition-colors"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-text-primary truncate leading-tight">
+                    <p className="text-sm font-semibold text-text-primary truncate leading-tight">
                       {item.judul}
                     </p>
-                    <p className="text-2xs text-text-secondary truncate mt-0.5">
+                    <p className="text-xs text-text-secondary truncate mt-0.5">
                       {item.pegawaiName} &bull; {item.tanggal}
                     </p>
                   </div>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-muted text-text-secondary shrink-0">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-sans font-medium uppercase bg-muted text-text-secondary shrink-0">
                     {item.lokasiTipe}
                   </span>
                 </li>
@@ -76,7 +76,7 @@ export function AdminDashboardPanels({ alerts }: AdminDashboardPanelsProps) {
               <h3 className="font-display font-bold text-text-primary text-sm">
                 Stok ATK Menipis
               </h3>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs font-mono font-medium bg-muted text-text-secondary">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs font-sans font-medium bg-muted text-text-secondary">
                 {alerts.stokMenipis.count}
               </span>
             </div>
@@ -102,17 +102,17 @@ export function AdminDashboardPanels({ alerts }: AdminDashboardPanelsProps) {
               {alerts.stokMenipis.items.map((item) => (
                 <li
                   key={item.id}
-                  className="py-2 px-1 flex items-center justify-between gap-2 hover:bg-muted/40 rounded transition-colors"
+                  className="py-2.5 px-1 flex items-center justify-between gap-2 hover:bg-muted/40 rounded transition-colors"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-text-primary truncate leading-tight">
+                    <p className="text-sm font-semibold text-text-primary truncate leading-tight">
                       {item.nama}
                     </p>
-                    <p className="text-2xs text-text-secondary truncate mt-0.5">
+                    <p className="text-xs text-text-secondary truncate mt-0.5">
                       Batas minimum: {item.limitStok} {item.satuan || 'unit'}
                     </p>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-error-tint text-error shrink-0">
+                  <span className="px-2 py-0.5 rounded text-xs font-sans font-bold tabular-nums bg-error-tint text-error shrink-0">
                     {item.stok} {item.satuan || ''}
                   </span>
                 </li>

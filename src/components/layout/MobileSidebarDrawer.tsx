@@ -59,7 +59,7 @@ export function MobileSidebarDrawer({
                 <span className="font-bold text-xs tracking-tight text-text-primary leading-tight">
                   SIMOP DPMPTSP
                 </span>
-                <span className="text-[10px] font-mono text-text-secondary leading-none uppercase tracking-wider">
+                <span className="text-[10px] font-sans font-medium text-text-secondary leading-none uppercase tracking-wider">
                   Karawang
                 </span>
               </div>

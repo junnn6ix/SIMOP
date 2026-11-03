@@ -138,29 +138,30 @@ export function StokLogTable({ data }: StokLogTableProps) {
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar
-        searchSlot={
-          <SearchInput
-            placeholder="Cari mutasi barang, keterangan, petugas..."
-            value={search}
-            onChange={setSearch}
-          />
-        }
-        filterSlot={
-          <FilterSelect
-            value={tipeFilter}
-            onChange={setTipeFilter}
-            placeholder="Arah Mutasi"
-            allOptionLabel="Semua Arah"
-            options={[
-              { label: 'Penambahan (MASUK)', value: 'MASUK' },
-              { label: 'Pengurangan (KELUAR)', value: 'KELUAR' },
-            ]}
-          />
-        }
-      />
-
       <DataTable
+        toolbarSlot={
+          <DataTableToolbar
+            searchSlot={
+              <SearchInput
+                placeholder="Cari mutasi barang, keterangan, petugas..."
+                value={search}
+                onChange={setSearch}
+              />
+            }
+            filterSlot={
+              <FilterSelect
+                value={tipeFilter}
+                onChange={setTipeFilter}
+                placeholder="Arah Mutasi"
+                allOptionLabel="Semua Arah"
+                options={[
+                  { label: 'Penambahan (MASUK)', value: 'MASUK' },
+                  { label: 'Pengurangan (KELUAR)', value: 'KELUAR' },
+                ]}
+              />
+            }
+          />
+        }
         columns={columns}
         data={filteredData}
         emptyTitle="Tidak Ada Riwayat Stok"

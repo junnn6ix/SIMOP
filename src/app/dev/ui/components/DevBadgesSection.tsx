@@ -12,7 +12,7 @@ export function DevBadgesSection() {
     >
       <Card className="p-6 space-y-6">
         <div className="space-y-3">
-          <h4 className="text-xs font-mono uppercase tracking-wider text-text-secondary">
+          <h4 className="text-xs font-sans font-medium uppercase tracking-wider text-text-secondary">
             Domain StatusBadge (Pill 9999px)
           </h4>
           <div className="flex flex-wrap items-center gap-2.5">
@@ -32,7 +32,7 @@ export function DevBadgesSection() {
         </div>
 
         <div className="space-y-3 pt-4 border-t border-border">
-          <h4 className="text-xs font-mono uppercase tracking-wider text-text-secondary">
+          <h4 className="text-xs font-sans font-medium uppercase tracking-wider text-text-secondary">
             General Badges & Tags (4px & Pill)
           </h4>
           <div className="flex flex-wrap items-center gap-2.5">

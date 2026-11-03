@@ -41,7 +41,7 @@ export function PegawaiDashboard({ data, userName, userBidang }: PegawaiDashboar
       {/* 1. Header Banner & Action Shortcuts */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-card border border-border bg-surface">
         <div>
-          <span className="text-xs font-semibold text-primary uppercase tracking-wider font-mono">
+          <span className="text-xs font-semibold text-primary uppercase tracking-wider font-sans">
             Portal Pegawai
           </span>
           <h2 className="text-xl sm:text-2xl font-bold font-display text-text-primary mt-0.5">

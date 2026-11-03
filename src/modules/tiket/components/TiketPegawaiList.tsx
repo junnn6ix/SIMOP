@@ -127,44 +127,45 @@ export function TiketPegawaiList({ data }: TiketPegawaiListProps) {
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar
-        searchSlot={
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Cari nomor tiket, nama barang..."
+      <DataTable
+        toolbarSlot={
+          <DataTableToolbar
+            searchSlot={
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder="Cari nomor tiket, nama barang..."
+              />
+            }
+            filterSlot={
+              <div className="flex flex-wrap items-center gap-2">
+                <FilterSelect
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  allOptionLabel="Semua Status"
+                  options={[
+                    { value: 'MENUNGGU', label: 'Menunggu' },
+                    { value: 'ACC', label: 'Disetujui (ACC)' },
+                    { value: 'MAINTENANCE', label: 'Maintenance' },
+                    { value: 'SELESAI', label: 'Selesai' },
+                    { value: 'DITOLAK', label: 'Ditolak' },
+                  ]}
+                  className="w-[160px]"
+                />
+                <FilterSelect
+                  value={jenisFilter}
+                  onChange={setJenisFilter}
+                  allOptionLabel="Semua Layanan"
+                  options={[
+                    { value: 'PERMINTAAN_BARANG', label: 'Permintaan Barang' },
+                    { value: 'LAPOR_KERUSAKAN', label: 'Lapor Kerusakan' },
+                  ]}
+                  className="w-[180px]"
+                />
+              </div>
+            }
           />
         }
-        filterSlot={
-          <div className="flex flex-wrap items-center gap-2">
-            <FilterSelect
-              value={statusFilter}
-              onChange={setStatusFilter}
-              allOptionLabel="Semua Status"
-              options={[
-                { value: 'MENUNGGU', label: 'Menunggu' },
-                { value: 'ACC', label: 'Disetujui (ACC)' },
-                { value: 'MAINTENANCE', label: 'Maintenance' },
-                { value: 'SELESAI', label: 'Selesai' },
-                { value: 'DITOLAK', label: 'Ditolak' },
-              ]}
-              className="w-[160px]"
-            />
-            <FilterSelect
-              value={jenisFilter}
-              onChange={setJenisFilter}
-              allOptionLabel="Semua Layanan"
-              options={[
-                { value: 'PERMINTAAN_BARANG', label: 'Permintaan Barang' },
-                { value: 'LAPOR_KERUSAKAN', label: 'Lapor Kerusakan' },
-              ]}
-              className="w-[180px]"
-            />
-          </div>
-        }
-      />
-
-      <DataTable
         columns={columns}
         data={filteredData}
         emptyTitle="Belum ada tiket diajukan"

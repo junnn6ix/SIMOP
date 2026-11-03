@@ -66,11 +66,12 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardData> {
     .from(user)
     .where(and(eq(user.role, 'PEGAWAI'), eq(user.aktif, true)));
 
-  // 2. Penugasan Hari Ini dihitung di SQL: hitung PEGAWAI UNIK (countDistinct pegawaiId) per lokasi_tipe
+  // 2. Penugasan Hari Ini dihitung di SQL:
+  // Segmen donut: JUMLAH TUGAS (count()) per lokasi_tipe
   const penugasanGrouped = await db
     .select({
       lokasiTipe: jadwal.lokasiTipe,
-      total: countDistinct(jadwal.pegawaiId),
+      total: count(jadwal.id),
     })
     .from(jadwal)
     .where(eq(jadwal.tanggal, todayStr))

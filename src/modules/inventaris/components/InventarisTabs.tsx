@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Package, History, Ticket } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { BarangTable, BarangItem } from './BarangTable';
@@ -18,12 +19,24 @@ export function InventarisTabs({
   stokLogList,
   tiketList,
 }: InventarisTabsProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const tabParam = searchParams.get('tab');
+  const currentTab = tabParam === 'tiket' || tabParam === 'riwayat' ? tabParam : 'katalog';
+
+  const handleTabChange = (val: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', val);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const pendingTicketsCount = React.useMemo(() => {
     return tiketList.filter((t) => t.status === 'MENUNGGU').length;
   }, [tiketList]);
 
   return (
-    <Tabs defaultValue="katalog" className="space-y-6">
+    <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
       <TabsList className="bg-neutral-tint/70 p-1 border border-border h-11">
         <TabsTrigger value="katalog" className="gap-2 px-4 py-2 text-xs font-semibold">
           <Package className="h-4 w-4" />

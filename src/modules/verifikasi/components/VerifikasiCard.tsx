@@ -27,7 +27,7 @@ export function VerifikasiCard({ item, onReview }: VerifikasiCardProps) {
               <span className="text-xs text-text-secondary">
                 @{item.pegawaiUsername || '-'}
               </span>
-              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-muted text-text-secondary">
+              <span className="text-[10px] uppercase font-sans font-medium px-1.5 py-0.5 rounded bg-muted text-text-secondary">
                 {item.pegawaiBidang}
               </span>
             </div>

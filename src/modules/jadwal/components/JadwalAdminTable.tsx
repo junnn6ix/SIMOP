@@ -145,7 +145,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
             <span className="text-xs text-text-secondary">
               @{row.original.pegawaiUsername || '-'}
             </span>
-            <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-muted text-text-secondary">
+            <span className="text-[10px] font-sans font-medium uppercase px-1.5 py-0.5 rounded bg-muted text-text-secondary">
               {row.original.pegawaiBidang}
             </span>
           </div>
@@ -228,44 +228,45 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar
-        searchSlot={
-          <SearchInput
-            placeholder="Cari tugas, pegawai, lokasi..."
-            value={search}
-            onChange={setSearch}
+      <DataTable
+        toolbarSlot={
+          <DataTableToolbar
+            searchSlot={
+              <SearchInput
+                placeholder="Cari tugas, pegawai, lokasi..."
+                value={search}
+                onChange={setSearch}
+              />
+            }
+            filterSlot={
+              <>
+                <FilterSelect
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  placeholder="Status Tugas"
+                  allOptionLabel="Semua Status"
+                  options={[
+                    { label: 'Belum Dikerjakan', value: 'BELUM_DIKERJAKAN' },
+                    { label: 'Menunggu Verifikasi', value: 'MENUNGGU_VERIFIKASI' },
+                    { label: 'Selesai Terverifikasi', value: 'SELESAI' },
+                  ]}
+                />
+                <FilterSelect
+                  value={lokasiFilter}
+                  onChange={setLokasiFilter}
+                  placeholder="Tipe Lokasi"
+                  allOptionLabel="Semua Lokasi"
+                  options={[
+                    { label: 'Loket Pelayanan', value: 'LOKET' },
+                    { label: 'Layanan Kecamatan', value: 'KECAMATAN' },
+                    { label: 'Kantor Dinas', value: 'KANTOR' },
+                    { label: 'Lainnya / Lapangan', value: 'LAINNYA' },
+                  ]}
+                />
+              </>
+            }
           />
         }
-        filterSlot={
-          <>
-            <FilterSelect
-              value={statusFilter}
-              onChange={setStatusFilter}
-              placeholder="Status Tugas"
-              allOptionLabel="Semua Status"
-              options={[
-                { label: 'Belum Dikerjakan', value: 'BELUM_DIKERJAKAN' },
-                { label: 'Menunggu Verifikasi', value: 'MENUNGGU_VERIFIKASI' },
-                { label: 'Selesai Terverifikasi', value: 'SELESAI' },
-              ]}
-            />
-            <FilterSelect
-              value={lokasiFilter}
-              onChange={setLokasiFilter}
-              placeholder="Tipe Lokasi"
-              allOptionLabel="Semua Lokasi"
-              options={[
-                { label: 'Loket Pelayanan', value: 'LOKET' },
-                { label: 'Layanan Kecamatan', value: 'KECAMATAN' },
-                { label: 'Kantor Dinas', value: 'KANTOR' },
-                { label: 'Lainnya / Lapangan', value: 'LAINNYA' },
-              ]}
-            />
-          </>
-        }
-      />
-
-      <DataTable
         columns={columns}
         data={filteredData}
         emptyTitle="Tidak Ada Jadwal"

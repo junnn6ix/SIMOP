@@ -61,7 +61,7 @@ export function Timeline({
                 </h4>
                 {item.status && <StatusBadge status={item.status} />}
               </div>
-              <span className="text-xs font-mono text-text-secondary">
+              <span className="text-xs font-sans text-text-secondary">
                 {item.timestamp}
               </span>
             </div>

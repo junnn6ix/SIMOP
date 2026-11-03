@@ -270,14 +270,22 @@ Sesuai arahan, fitur otomatisasi WhatsApp pada Fase 4 **ditangguhkan sementara**
   - Teks tombol putih di atas `#5047E5` menghasilkan rasio kontras **6.22 : 1**, melampaui standar ketat **WCAG AA Normal Text ($\ge 4.5:1$)** tanpa menurunkan ambang batas kalkulasi.
   - Batas tombol primer terhadap surface gelap (`#111113`) menghasilkan rasio **3.03 : 1** (memenuhi batas graphical component $\ge 3.0:1$).
   - Ring fokus (`#5047E5` di terang, `#818CF8` di gelap) terverifikasi lulus rasio **6.22 : 1** dan **6.32 : 1** terhadap latar masing-masing.
-- **Konsistensi Pusat Donut Chart dengan Jumlah Segmen**:
-  - Pusat Donut Chart didefinisikan sebagai **Total Distribusi Penugasan** (`penugasanHariIni.total`), yang dihitung sebagai penjumlahan persis dari seluruh segmen lokasi (`loket + kecamatan + kantor + lainnya`).
-  - Label pusat donut ditetapkan menjadi `"Total Tugas"`.
-  - Mencegah inkonsistensi matematis di mana nilai di tengah donut berbeda dengan total persentase/penjumlahan potongan diagram.
-  - Jumlah pegawai unik yang bertugas tetap dipantau melalui kueri SQL terpisah (`penugasanHariIni.pegawaiUnik`) untuk ditampilkan pada Kartu Metrik "Bertugas Hari Ini".
+- **Kepatuhan Kontras Tema Terang & Token Neutral / Placeholder**:
+  - Nilai `--color-text-neutral` disesuaikan menjadi `#71717A` (Zinc 500) pada tema terang (`:root`), menghasilkan rasio kontras **4.83 : 1** terhadap surface putih (`#FFFFFF`) dan **4.63 : 1** terhadap background (`#FAFAFA`), secara penuh memenuhi standar WCAG AA Normal Text ($\ge 4.5:1$).
+  - Pada tema gelap (`.dark`), `--color-text-neutral` disesuaikan menjadi `#8E8E93`, menghasilkan rasio kontras **5.78 : 1** terhadap surface `#111113` dan **6.07 : 1** terhadap background `#0A0A0B`.
+  - Seluruh varian badge status pada tema terang (Sukses `#065F46`, Peringatan `#92400E`, Error `#991B1B`, Netral `#374151`) terverifikasi melampaui standar target AA/AAA ($\ge 6.84 : 1$ hingga $10.31 : 1$).
+- **Definisi Jujur Donut Chart & Pegawai Bertugas**:
+  - Segmen Donut Chart didefinisikan secara murni sebagai **Jumlah TUGAS** (`count(jadwal.id)`) per `lokasi_tipe`, dan nilai di tengah donut merepresentasikan akumulasi seluruh tugas hari ini dengan label `"Total Tugas"`.
+  - Kartu StatCard "Bertugas Hari Ini" merepresentasikan **Jumlah PEGAWAI UNIK** (`countDistinct(jadwal.pegawaiId)`) lintas seluruh lokasi penugasan hari ini.
+  - Penyelarasan ini menyelesaikan friksi visual matematis di mana penjumlahan segmen lokasi persis sama dengan total tugas di pusat donut, sementara kartu statistik menyajikan jumlah aparatur yang berdinas.
+- **Hierarki Tipografi & Restriksi Ketat `font-mono`**:
+  - `font-mono` HANYA diizinkan untuk identitas kode dan numerik sistem: Nomor SKRD, NIP Pegawai, Kode Barang, Nomor Tiket Layanan, dan tombol shortcut `<kbd>`.
+  - Seluruh elemen non-kode (label grup sidebar, badge StatCard, label "Hari Ini", label "Total Tugas" di donut, subjudul logo dinas, badge tipe lokasi) distandardisasi menggunakan `font-sans` (`font-medium` / `font-semibold`).
+  - Skala tipografi kartu distandardisasi: `title-card` 14-15px weight 600, `body` 14-15px, `meta`/`description` 12-13px `text-text-secondary`, `overline` 11px uppercase tracking-wide `font-sans`, `stat-number` besar font-display tabular-nums.
 - **Format Modern Kartu Metrik (`StatCard.tsx`)**:
   - Format 3 tingkat: label kecil di kiri atas, badge konteks kecil di kanan atas (`Aparatur`, `Hari Ini`, `Perlu ACC`, `≤ 3 Hari`), angka besar font General Sans / `font-display` (2xl-3xl, tracking tight), dan deskripsi pendukung di bawah.
   - Ikon metrik disajikan berukuran ringkas (16-18px) di dalam wadah berlatar `bg-muted` dengan border tipis `border-border` dan teks sekunder `text-text-secondary`, tanpa warna primer.
+  - Kartu "Tiket Menunggu" ditautkan ke `/admin/inventaris?tab=tiket` dan "PBG Jatuh Tempo" ditautkan ke `/admin/pbg`.
 - **Kartu Panel Operasional (`AdminDashboardPanels.tsx`)**:
   - Menghadirkan dua kartu panel terfokus di samping Donut Chart:
     1. *Antrean Verifikasi Laporan*: Menampilkan hingga 5 laporan tugas dinas yang berstatus `MENUNGGU_VERIFIKASI` (judul tugas, nama pegawai, tanggal WIB, dan jenis lokasi) serta tombol "Lihat Semua ->" ke `/admin/verifikasi`.

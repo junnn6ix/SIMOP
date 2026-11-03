@@ -129,7 +129,7 @@ function VerifikasiModalContent({ item, onClose, onSuccess }: VerifikasiContentP
             </div>
           </div>
 
-          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-surface border border-border text-text-primary w-fit">
+          <span className="text-[10px] uppercase font-sans font-medium px-2 py-0.5 rounded bg-surface border border-border text-text-primary w-fit">
             Bidang: {item.pegawaiBidang}
           </span>
         </div>

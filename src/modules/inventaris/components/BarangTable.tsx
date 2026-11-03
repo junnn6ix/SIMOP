@@ -226,47 +226,48 @@ export function BarangTable({ data }: BarangTableProps) {
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar
-        searchSlot={
-          <SearchInput
-            placeholder="Cari nama, kode, atau spesifikasi..."
-            value={search}
-            onChange={setSearch}
+      <DataTable
+        toolbarSlot={
+          <DataTableToolbar
+            searchSlot={
+              <SearchInput
+                placeholder="Cari nama, kode, atau spesifikasi..."
+                value={search}
+                onChange={setSearch}
+              />
+            }
+            filterSlot={
+              <>
+                <FilterSelect
+                  value={kategoriFilter}
+                  onChange={setKategoriFilter}
+                  placeholder="Kategori Barang"
+                  allOptionLabel="Semua Kategori"
+                  options={[
+                    { label: 'ATK (Habis Pakai)', value: 'ATK' },
+                    { label: 'ASET (Inventaris)', value: 'ASET' },
+                  ]}
+                />
+                <FilterSelect
+                  value={stokFilter}
+                  onChange={setStokFilter}
+                  placeholder="Status Stok"
+                  allOptionLabel="Semua Status Stok"
+                  options={[
+                    { label: 'Stok Tersedia', value: 'TERSEDIA' },
+                    { label: 'Stok Habis (0)', value: 'HABIS' },
+                  ]}
+                />
+              </>
+            }
+            actionsSlot={
+              <Button onClick={() => setIsAddOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                <span>Tambah Barang</span>
+              </Button>
+            }
           />
         }
-        filterSlot={
-          <>
-            <FilterSelect
-              value={kategoriFilter}
-              onChange={setKategoriFilter}
-              placeholder="Kategori Barang"
-              allOptionLabel="Semua Kategori"
-              options={[
-                { label: 'ATK (Habis Pakai)', value: 'ATK' },
-                { label: 'ASET (Inventaris)', value: 'ASET' },
-              ]}
-            />
-            <FilterSelect
-              value={stokFilter}
-              onChange={setStokFilter}
-              placeholder="Status Stok"
-              allOptionLabel="Semua Status Stok"
-              options={[
-                { label: 'Stok Tersedia', value: 'TERSEDIA' },
-                { label: 'Stok Habis (0)', value: 'HABIS' },
-              ]}
-            />
-          </>
-        }
-        actionsSlot={
-          <Button onClick={() => setIsAddOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            <span>Tambah Barang</span>
-          </Button>
-        }
-      />
-
-      <DataTable
         columns={columns}
         data={filteredData}
         emptyTitle="Tidak Ada Barang"

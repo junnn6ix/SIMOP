@@ -26,7 +26,7 @@ export function DevFeedbackModalsSection() {
       <div className="space-y-6">
         {/* Inline Alerts */}
         <Card className="p-6 space-y-3">
-          <h4 className="text-xs font-mono uppercase tracking-wider text-text-secondary">
+          <h4 className="text-xs font-sans font-medium uppercase tracking-wider text-text-secondary">
             Inline Alerts (Info, Success, Warning, Error)
           </h4>
           <div className="space-y-2.5">
@@ -55,7 +55,7 @@ export function DevFeedbackModalsSection() {
 
         {/* Dialog & Toast Triggers */}
         <Card className="p-6 space-y-4">
-          <h4 className="text-xs font-mono uppercase tracking-wider text-text-secondary">
+          <h4 className="text-xs font-sans font-medium uppercase tracking-wider text-text-secondary">
             Interaksi Dialog & Toast (Pengganti alert() & confirm())
           </h4>
           <div className="flex flex-wrap items-center gap-3">

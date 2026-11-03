@@ -74,6 +74,7 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
           badge={alerts.tiketMenunggu > 0 ? `${alerts.tiketMenunggu} Menunggu` : 'Nihil'}
           icon={<AlertTriangle className="h-4 w-4" />}
           description="Permintaan & perbaikan ATK"
+          href="/admin/inventaris?tab=tiket"
         />
         <StatCard
           label="PBG Jatuh Tempo"
@@ -81,6 +82,7 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
           badge={alerts.pbgDueSoon.count > 0 ? '≤ 3 Hari' : 'Aman'}
           icon={<ReceiptText className="h-4 w-4" />}
           description="Tagihan mendekati tempo"
+          href="/admin/pbg"
         />
       </CardGroup>
 
@@ -93,7 +95,7 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
               <h3 className="font-display font-bold text-text-primary text-sm">
                 Distribusi Penugasan
               </h3>
-              <span className="text-2xs font-mono text-text-secondary uppercase">
+              <span className="text-2xs font-sans font-medium text-text-secondary uppercase tracking-wider">
                 Hari Ini
               </span>
             </div>
@@ -143,8 +145,8 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
                 <Calendar className="h-4 w-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-text-primary truncate">Kelola Jadwal Pegawai</p>
-                <p className="text-2xs text-text-secondary truncate">Penugasan kalender dinas & wilayah</p>
+                <p className="text-sm font-semibold text-text-primary truncate">Kelola Jadwal Pegawai</p>
+                <p className="text-xs text-text-secondary truncate mt-0.5">Penugasan kalender dinas & wilayah</p>
               </div>
             </div>
             <ArrowRight className="h-3.5 w-3.5 text-text-secondary group-hover:text-text-primary transition-colors shrink-0 ml-2" />
@@ -158,8 +160,8 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
                 <Users className="h-4 w-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-text-primary truncate">Manajemen Aparatur</p>
-                <p className="text-2xs text-text-secondary truncate">Akun, bidang kedinasan, & status</p>
+                <p className="text-sm font-semibold text-text-primary truncate">Manajemen Aparatur</p>
+                <p className="text-xs text-text-secondary truncate mt-0.5">Akun, bidang kedinasan, & status</p>
               </div>
             </div>
             <ArrowRight className="h-3.5 w-3.5 text-text-secondary group-hover:text-text-primary transition-colors shrink-0 ml-2" />
@@ -173,8 +175,8 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
                 <ReceiptText className="h-4 w-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-text-primary truncate">Monitoring Retribusi</p>
-                <p className="text-2xs text-text-secondary truncate">SKRD & pelunasan PBG Karawang</p>
+                <p className="text-sm font-semibold text-text-primary truncate">Monitoring Retribusi</p>
+                <p className="text-xs text-text-secondary truncate mt-0.5">SKRD & pelunasan PBG Karawang</p>
               </div>
             </div>
             <ArrowRight className="h-3.5 w-3.5 text-text-secondary group-hover:text-text-primary transition-colors shrink-0 ml-2" />

@@ -305,30 +305,31 @@ export function PbgTable({ data }: PbgTableProps) {
   return (
     <>
       <div className="space-y-4">
-        <DataTableToolbar
-          searchSlot={
-            <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder="Cari pemohon, SKRD, lokasi..."
-            />
-          }
-          filterSlot={
-            <FilterSelect
-              value={statusFilter}
-              onChange={setStatusFilter}
-              allOptionLabel="Semua Status"
-              options={[
-                { value: 'BELUM_BAYAR', label: 'Belum Bayar' },
-                { value: 'LUNAS', label: 'Lunas' },
-                { value: 'JATUH_TEMPO_3_HARI', label: 'Jatuh Tempo ≤ 3 Hari' },
-              ]}
-              className="w-[200px]"
-            />
-          }
-        />
-
         <DataTable
+          toolbarSlot={
+            <DataTableToolbar
+              searchSlot={
+                <SearchInput
+                  value={search}
+                  onChange={setSearch}
+                  placeholder="Cari pemohon, SKRD, lokasi..."
+                />
+              }
+              filterSlot={
+                <FilterSelect
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  allOptionLabel="Semua Status"
+                  options={[
+                    { value: 'BELUM_BAYAR', label: 'Belum Bayar' },
+                    { value: 'LUNAS', label: 'Lunas' },
+                    { value: 'JATUH_TEMPO_3_HARI', label: 'Jatuh Tempo ≤ 3 Hari' },
+                  ]}
+                  className="w-[200px]"
+                />
+              }
+            />
+          }
           columns={columns}
           data={filteredData}
           emptyTitle="Belum ada data tagihan PBG"

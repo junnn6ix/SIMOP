@@ -4,6 +4,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { DevTypographySection } from './components/DevTypographySection';
 import { DevButtonsSection } from './components/DevButtonsSection';
 import { DevBadgesSection } from './components/DevBadgesSection';
 import { DevFormsSection } from './components/DevFormsSection';
@@ -41,6 +42,7 @@ export default function DevUiPage() {
         />
 
         <div className="space-y-12">
+          <DevTypographySection />
           <DevButtonsSection />
           <DevBadgesSection />
           <DevFormsSection />
