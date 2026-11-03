@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Genesis Color Tokens */
+  --color-primary: #6366F1;
+  --color-primary-hover: #4F46E5;
+  --color-background: #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-text-primary: #0A0A0A;
+  --color-text-secondary: #6B6B6B;
+  --color-text-neutral: #9C9C9C;
+  --color-border: #E8E8EC;
+  --color-muted: #F4F4F6;
+
+  /* Semantic Status Tokens (AA Accessible) */
+  --color-success: #10B981;
+  --color-success-tint: #ECFDF5;
+  --color-success-dark: #065F46;
+
+  --color-warning: #F59E0B;
+  --color-warning-tint: #FFFBEB;
+  --color-warning-dark: #92400E;
+
+  --color-error: #EF4444;
+  --color-error-tint: #FEF2F2;
+  --color-error-dark: #991B1B;
+
+  --color-neutral-tint: #F3F4F6;
+  --color-neutral-dark: #374151;
+
+  /* Radius Tokens */
+  --radius-tag: 4px;
+  --radius-btn: 6px;
+  --radius-panel: 8px;
+  --radius-card: 12px;
+  --radius-full: 9999px;
+
+  /* Elevation Shadows */
+  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --shadow-primary-glow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  --shadow-focus-ring: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-dm-sans), sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-general-sans), sans-serif;
+    letter-spacing: -0.035em;
+    color: var(--color-text-primary);
+  }
+}
+
+/* Custom interactive utility classes */
+.hover-lift-card {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.hover-lift-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.btn-lift {
+  transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.btn-lift:hover {
+  transform: translateY(-1px);
+}
+.btn-primary-glow:hover {
+  box-shadow: var(--shadow-primary-glow);
+}
+
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus-ring);
+}
+
