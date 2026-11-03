@@ -75,7 +75,7 @@ export function SidebarNav({
         return (
           <div key={group.label || `group-${groupIdx}`} className="flex flex-col gap-1">
             {group.label && !collapsed && (
-              <p className="px-2.5 mb-1 text-2xs font-mono uppercase tracking-wider text-text-neutral">
+              <p className="px-2.5 mb-1 text-2xs font-mono uppercase tracking-wider text-text-secondary">
                 {group.label}
               </p>
             )}

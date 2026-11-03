@@ -143,7 +143,7 @@ export function BarangTable({ data }: BarangTableProps) {
               {stok}
             </span>
             <span className="text-xs text-text-secondary">{satuan}</span>
-            <span className="text-[11px] text-text-neutral">/ Min {limitStok}</span>
+            <span className="text-[11px] text-text-secondary">/ Min {limitStok}</span>
             {isOutOfStock && (
               <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-error-tint text-error">
                 Habis

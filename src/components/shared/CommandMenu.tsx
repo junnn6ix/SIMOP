@@ -167,7 +167,7 @@ export function CommandMenu({ open, onOpenChange, role = 'PEGAWAI' }: CommandMen
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] text-text-neutral font-mono bg-muted/60 px-1.5 py-0.5 rounded shrink-0 ml-2">
+                    <span className="text-[10px] text-text-secondary font-mono bg-muted/60 px-1.5 py-0.5 rounded shrink-0 ml-2">
                       {item.category}
                     </span>
                   </CommandPrimitive.Item>

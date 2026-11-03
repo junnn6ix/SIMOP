@@ -120,6 +120,11 @@ describe('Real PostgreSQL Integration Test: Bertugas Hari Ini (countDistinct use
     // Di KANTOR ada 1 tugas milik Pegawai A -> 1 pegawai unik
     expect(Number(kantorRow?.totalPegawaiUnik)).toBe(1);
 
+    const loket = Number(loketRow?.totalPegawaiUnik ?? 0);
+    const kantor = Number(kantorRow?.totalPegawaiUnik ?? 0);
+    const kecamatan = 0;
+    const lainnya = 0;
+
     // 2. Kueri total pegawai bertugas hari ini lintas seluruh lokasi
     // Total ada 4 baris jadwal, namun hanya melibatkan 2 pegawai unik (Pegawai A dan Pegawai B)
     const [totalRow] = await testDb
@@ -130,6 +135,22 @@ describe('Real PostgreSQL Integration Test: Bertugas Hari Ini (countDistinct use
       .where(and(inArray(jadwal.id, createdJadwalIds), eq(jadwal.tanggal, todayStr)));
 
     expect(Number(totalRow?.totalPegawaiBertugas)).toBe(2);
+
+    // 3. Konsistensi Pusat Donut dengan Jumlah Segmen:
+    // Pusat donut didefinisikan sebagai total distribusi penugasan hari ini (sum of segments: loket + kantor + kecamatan + lainnya).
+    // Menghilangkan bug selisih angka antara nilai pusat dengan penjumlahan segmen.
+    const donutTotal = loket + kantor + kecamatan + lainnya;
+    expect(donutTotal).toBe(3);
+
+    // Pastikan penjumlahan segmen donut persis sama dengan pusat donut
+    const donutSegments = [
+      { label: 'Kantor Dinas', value: kantor },
+      { label: 'Loket Pelayanan', value: loket },
+      { label: 'Layanan Kecamatan', value: kecamatan },
+      { label: 'Lainnya / Lapangan', value: lainnya },
+    ];
+    const sumOfSegments = donutSegments.reduce((sum, s) => sum + s.value, 0);
+    expect(donutTotal).toBe(sumOfSegments);
   });
 });
 

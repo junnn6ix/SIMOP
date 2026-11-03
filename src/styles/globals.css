@@ -4,9 +4,9 @@
 
 :root {
   /* Genesis Color Tokens - Light */
-  --color-primary: #6366F1;
-  --color-primary-hover: #4F46E5;
-  --color-primary-text: #4F46E5;
+  --color-primary: #5047E5;
+  --color-primary-hover: #4338CA;
+  --color-primary-text: #5047E5;
   --color-background: #FAFAFA;
   --color-surface: #FFFFFF;
   --color-surface-2: #F4F4F6;
@@ -57,8 +57,8 @@
 
 .dark {
   /* Genesis Color Tokens - Dark */
-  --color-primary: #6366F1;
-  --color-primary-hover: #818CF8;
+  --color-primary: #5047E5;
+  --color-primary-hover: #4338CA;
   --color-primary-text: #818CF8;
   --color-background: #0A0A0B;
   --color-surface: #111113;

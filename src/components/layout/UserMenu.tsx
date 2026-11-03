@@ -44,7 +44,7 @@ export function UserMenu({ user, onSignOut }: UserMenuProps) {
               @{user.username} &bull; {user.role}
             </p>
             {user.bidang && (
-              <p className="text-[11px] text-text-neutral uppercase tracking-wider font-mono">
+              <p className="text-[11px] text-text-secondary uppercase tracking-wider font-mono">
                 {user.bidang}
               </p>
             )}

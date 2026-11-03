@@ -134,7 +134,7 @@ export function TopHeader({
           <Search className="h-3.5 w-3.5 text-text-neutral" />
           <span className="hidden sm:inline text-xs">Cari...</span>
           <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.2 font-mono text-[10px] text-text-neutral">
-            ⌘K
+            ⌘ K
           </kbd>
         </Button>
 

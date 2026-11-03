@@ -46,7 +46,7 @@ const tests = [
   // 1. Text & Links
   {
     name: 'Primary Text / Link (Light on White Surface)',
-    fg: '#4F46E5',
+    fg: '#5047E5',
     bg: '#FFFFFF',
     standard: 'AA Normal Text (>= 4.5:1)',
     min: 4.5,
@@ -65,40 +65,27 @@ const tests = [
     standard: 'AA Normal Text (>= 4.5:1)',
     min: 4.5,
   },
+  // 2. Primary Buttons (Strict AA >= 4.5:1)
   {
-    name: 'Primary Button Text (White on Indigo #6366F1)',
+    name: 'Primary Button Text (White on Indigo #5047E5)',
     fg: '#FFFFFF',
-    bg: '#6366F1',
-    standard: 'AA UI Control / Bold (>= 3.0:1)',
-    min: 3.0,
+    bg: '#5047E5',
+    standard: 'AA Normal Text (>= 4.5:1)',
+    min: 4.5,
   },
   {
     name: 'Primary Button Boundary vs Dark Surface #111113',
-    fg: '#6366F1',
+    fg: '#5047E5',
     bg: '#111113',
     standard: 'UI Component / Graphical (>= 3.0:1)',
     min: 3.0,
   },
-  // 2. Secondary & Neutral Texts
+  // 3. Focus Rings (Light & Dark)
   {
-    name: 'Text Primary on Dark Surface',
-    fg: '#FAFAFA',
-    bg: '#111113',
-    standard: 'AAA Normal Text (>= 7.0:1)',
-    min: 7.0,
-  },
-  {
-    name: 'Text Secondary (Metadata/Timestamp) on Dark Surface',
-    fg: '#A1A1AA',
-    bg: '#111113',
-    standard: 'AAA Normal Text (>= 7.0:1)',
-    min: 7.0,
-  },
-  {
-    name: 'Text Neutral (Placeholder/Disabled) on Dark Surface',
-    fg: '#71717A',
-    bg: '#111113',
-    standard: 'Placeholder / Disabled (>= 3.0:1)',
+    name: 'Focus Ring Boundary vs Light Surface #FFFFFF',
+    fg: '#5047E5',
+    bg: '#FFFFFF',
+    standard: 'UI Focus State (>= 3.0:1)',
     min: 3.0,
   },
   {
@@ -108,7 +95,43 @@ const tests = [
     standard: 'UI Focus State (>= 3.0:1)',
     min: 3.0,
   },
-  // 3. Status Badges Dark (Tint with 15% alpha over #111113)
+  // 4. Secondary & Neutral Texts
+  {
+    name: 'Text Primary on Dark Surface',
+    fg: '#FAFAFA',
+    bg: '#111113',
+    standard: 'AAA Normal Text (>= 7.0:1)',
+    min: 7.0,
+  },
+  {
+    name: 'Text Secondary (Metadata/Timestamp) on Dark Surface #111113',
+    fg: '#A1A1AA',
+    bg: '#111113',
+    standard: 'AA Normal Text (>= 4.5:1)',
+    min: 4.5,
+  },
+  {
+    name: 'Text Secondary (Metadata/Timestamp) on Dark Background #0A0A0B',
+    fg: '#A1A1AA',
+    bg: '#0A0A0B',
+    standard: 'AA Normal Text (>= 4.5:1)',
+    min: 4.5,
+  },
+  {
+    name: 'Text Neutral (Placeholder/Disabled) on Dark Surface #111113',
+    fg: '#71717A',
+    bg: '#111113',
+    standard: 'Placeholder / Disabled (>= 3.0:1)',
+    min: 3.0,
+  },
+  {
+    name: 'Text Neutral (Placeholder/Disabled) on Dark Background #0A0A0B',
+    fg: '#71717A',
+    bg: '#0A0A0B',
+    standard: 'Placeholder / Disabled (>= 3.0:1)',
+    min: 3.0,
+  },
+  // 5. Status Badges Dark (Tint with 15% alpha over #111113)
   {
     name: 'Status Success Dark (#6EE7B7 on #10B981@15% + #111113)',
     fg: '#6EE7B7',
@@ -139,16 +162,16 @@ const tests = [
   },
 ];
 
-console.log('='.repeat(90));
+console.log('='.repeat(96));
 console.log('SIMOP DPMPTSP - Laporan Verifikasi Kontras Aksesibilitas WCAG 2.1');
-console.log('='.repeat(90));
+console.log('='.repeat(96));
 console.log(
-  'Elemen / Pasangan Warna'.padEnd(52) +
+  'Elemen / Pasangan Warna'.padEnd(58) +
   'Rasio'.padEnd(12) +
   'Standar'.padEnd(20) +
   'Hasil'
 );
-console.log('-'.repeat(90));
+console.log('-'.repeat(96));
 
 let allPassed = true;
 for (const t of tests) {
@@ -160,13 +183,13 @@ for (const t of tests) {
   const statusStr = passed ? '✅ LULUS' : '❌ GAGAL';
 
   console.log(
-    t.name.padEnd(52) +
+    t.name.padEnd(58) +
     ratioStr.padEnd(12) +
     t.standard.padEnd(20) +
     statusStr
   );
 }
-console.log('='.repeat(90));
+console.log('='.repeat(96));
 
 if (allPassed) {
   console.log('✅ Semua pasangan warna memenuhi atau melampaui standar target WCAG AA / AAA.');

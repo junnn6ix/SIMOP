@@ -117,7 +117,7 @@ export function ProfilView({ user }: ProfilViewProps) {
           </div>
 
           <div className="mt-6 pt-4 border-t border-border">
-            <p className="text-[11px] text-text-neutral leading-relaxed">
+            <p className="text-[11px] text-text-secondary leading-relaxed">
               Data identitas pegawai dikelola secara terpusat oleh administrator dinas. Jika terdapat kekeliruan data NIP atau mutasi bidang, hubungi Subbag Kepegawaian.
             </p>
           </div>

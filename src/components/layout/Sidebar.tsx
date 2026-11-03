@@ -52,11 +52,11 @@ export function Sidebar({
             <Layers className="h-4 w-4" />
           </div>
           {!collapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="font-bold text-xs tracking-tight text-text-primary leading-tight">
+            <div className="flex flex-col min-w-0 gap-1">
+              <span className="font-bold text-md tracking-tight text-text-primary leading-tight">
                 SIMOP DPMPTSP
               </span>
-              <span className="text-[10px] font-mono text-text-secondary leading-none uppercase tracking-wider truncate">
+              <span className="text-[10px] font-mono text-text-secondary leading-none tracking-wider truncate">
                 Kabupaten Karawang
               </span>
             </div>

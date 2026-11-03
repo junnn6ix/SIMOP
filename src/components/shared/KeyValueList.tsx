@@ -39,7 +39,7 @@ export function KeyValueList({
               {item.label}
             </span>
             {item.hint && (
-              <p className="text-[11px] text-text-neutral">{item.hint}</p>
+              <p className="text-[11px] text-text-secondary">{item.hint}</p>
             )}
           </div>
           <div className="flex items-center gap-2">

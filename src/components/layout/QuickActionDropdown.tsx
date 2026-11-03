@@ -90,7 +90,7 @@ export function QuickActionDropdown({
         side={collapsed ? 'right' : 'bottom'}
         className="w-56 p-1 z-50"
       >
-        <DropdownMenuLabel className="text-2xs font-mono uppercase tracking-wider text-text-neutral px-2.5 py-1.5">
+        <DropdownMenuLabel className="text-2xs font-mono uppercase tracking-wider text-text-secondary px-2.5 py-1.5">
           Tindakan Cepat
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

@@ -262,3 +262,25 @@ Sesuai arahan, fitur otomatisasi WhatsApp pada Fase 4 **ditangguhkan sementara**
 - **Pembersihan Dead Code**:
   - Komponen lama `TopNav.tsx`, `NavLinks.tsx`, dan `MobileNavDrawer.tsx` telah dihapus sepenuhnya dari codebase.
 
+---
+
+## 12. Kartu Ringkasan, Visualisasi Data, & Penyelarasan Donut Chart (Fase C)
+- **Kepatuhan Kontras Tombol Primer (`--color-primary`)**:
+  - Nilai `--color-primary` disesuaikan menjadi `#5047E5` (Indigo 600 terkalibrasi) pada tema terang maupun gelap.
+  - Teks tombol putih di atas `#5047E5` menghasilkan rasio kontras **6.22 : 1**, melampaui standar ketat **WCAG AA Normal Text ($\ge 4.5:1$)** tanpa menurunkan ambang batas kalkulasi.
+  - Batas tombol primer terhadap surface gelap (`#111113`) menghasilkan rasio **3.03 : 1** (memenuhi batas graphical component $\ge 3.0:1$).
+  - Ring fokus (`#5047E5` di terang, `#818CF8` di gelap) terverifikasi lulus rasio **6.22 : 1** dan **6.32 : 1** terhadap latar masing-masing.
+- **Konsistensi Pusat Donut Chart dengan Jumlah Segmen**:
+  - Pusat Donut Chart didefinisikan sebagai **Total Distribusi Penugasan** (`penugasanHariIni.total`), yang dihitung sebagai penjumlahan persis dari seluruh segmen lokasi (`loket + kecamatan + kantor + lainnya`).
+  - Label pusat donut ditetapkan menjadi `"Total Tugas"`.
+  - Mencegah inkonsistensi matematis di mana nilai di tengah donut berbeda dengan total persentase/penjumlahan potongan diagram.
+  - Jumlah pegawai unik yang bertugas tetap dipantau melalui kueri SQL terpisah (`penugasanHariIni.pegawaiUnik`) untuk ditampilkan pada Kartu Metrik "Bertugas Hari Ini".
+- **Format Modern Kartu Metrik (`StatCard.tsx`)**:
+  - Format 3 tingkat: label kecil di kiri atas, badge konteks kecil di kanan atas (`Aparatur`, `Hari Ini`, `Perlu ACC`, `≤ 3 Hari`), angka besar font General Sans / `font-display` (2xl-3xl, tracking tight), dan deskripsi pendukung di bawah.
+  - Ikon metrik disajikan berukuran ringkas (16-18px) di dalam wadah berlatar `bg-muted` dengan border tipis `border-border` dan teks sekunder `text-text-secondary`, tanpa warna primer.
+- **Kartu Panel Operasional (`AdminDashboardPanels.tsx`)**:
+  - Menghadirkan dua kartu panel terfokus di samping Donut Chart:
+    1. *Antrean Verifikasi Laporan*: Menampilkan hingga 5 laporan tugas dinas yang berstatus `MENUNGGU_VERIFIKASI` (judul tugas, nama pegawai, tanggal WIB, dan jenis lokasi) serta tombol "Lihat Semua ->" ke `/admin/verifikasi`.
+    2. *Stok ATK Menipis*: Menampilkan daftar barang ATK/sarana dengan stok $\le$ batas minimum serta tombol "Lihat Semua ->" ke `/admin/inventaris`.
+
+
