@@ -11,7 +11,7 @@ import { FilterSelect } from '@/components/shared/FilterSelect';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog';
 import { formatDateShort } from '@/lib/dates';
 import { deleteJadwalAction } from '../actions';
 
@@ -227,7 +227,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-w-0 w-full max-w-full">
       <DataTable
         toolbarSlot={
           <DataTableToolbar
@@ -294,7 +294,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
             <DialogTitle>Bukti Pelaksanaan: {previewItem?.judul}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 pt-2">
+          <DialogBody className="space-y-4">
             <div>
               <div className="text-xs text-text-secondary">Pegawai Pelaksana</div>
               <div className="font-semibold text-text-primary">
@@ -337,7 +337,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
                 )}
               </div>
             )}
-          </div>
+          </DialogBody>
         </DialogContent>
       </Dialog>
     </div>

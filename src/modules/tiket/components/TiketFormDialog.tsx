@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -132,7 +133,8 @@ export function TiketFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <DialogBody className="space-y-4">
           {errorMessage && (
             <div className="rounded-lg bg-error-tint border border-error/30 p-3 text-xs text-error font-medium flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
@@ -145,7 +147,7 @@ export function TiketFormDialog({
             <label className="text-xs font-semibold text-text-primary">
               Jenis Layanan <span className="text-error">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setJenis('PERMINTAAN_BARANG')}
@@ -274,6 +276,7 @@ export function TiketFormDialog({
               className="resize-none h-24 text-xs"
             />
           </FormField>
+          </DialogBody>
 
           <DialogFooter className="gap-2 sm:gap-0 pt-2">
             <Button

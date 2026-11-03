@@ -138,7 +138,7 @@ export function TiketPegawaiList({ data }: TiketPegawaiListProps) {
               />
             }
             filterSlot={
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 <FilterSelect
                   value={statusFilter}
                   onChange={setStatusFilter}
@@ -150,7 +150,7 @@ export function TiketPegawaiList({ data }: TiketPegawaiListProps) {
                     { value: 'SELESAI', label: 'Selesai' },
                     { value: 'DITOLAK', label: 'Ditolak' },
                   ]}
-                  className="w-[160px]"
+                  className="w-full sm:w-[160px]"
                 />
                 <FilterSelect
                   value={jenisFilter}
@@ -160,7 +160,7 @@ export function TiketPegawaiList({ data }: TiketPegawaiListProps) {
                     { value: 'PERMINTAAN_BARANG', label: 'Permintaan Barang' },
                     { value: 'LAPOR_KERUSAKAN', label: 'Lapor Kerusakan' },
                   ]}
-                  className="w-[180px]"
+                  className="w-full sm:w-[180px]"
                 />
               </div>
             }

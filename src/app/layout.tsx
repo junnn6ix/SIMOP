@@ -21,9 +21,9 @@ export default function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${generalSans.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
+      className={`${generalSans.variable} ${dmSans.variable} ${jetbrainsMono.variable} overflow-x-hidden max-w-full`}
     >
-      <body className="min-h-screen bg-background text-text-primary font-sans antialiased selection:bg-primary/20 selection:text-primary">
+      <body className="min-h-screen bg-background text-text-primary font-sans antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden max-w-full">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

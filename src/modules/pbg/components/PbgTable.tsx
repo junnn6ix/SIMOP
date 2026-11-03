@@ -304,7 +304,7 @@ export function PbgTable({ data }: PbgTableProps) {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0 w-full max-w-full">
         <DataTable
           toolbarSlot={
             <DataTableToolbar
@@ -325,7 +325,7 @@ export function PbgTable({ data }: PbgTableProps) {
                     { value: 'LUNAS', label: 'Lunas' },
                     { value: 'JATUH_TEMPO_3_HARI', label: 'Jatuh Tempo ≤ 3 Hari' },
                   ]}
-                  className="w-[200px]"
+                  className="w-full sm:w-[200px]"
                 />
               }
             />

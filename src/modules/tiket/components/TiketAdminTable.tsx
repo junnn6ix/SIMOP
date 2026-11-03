@@ -32,6 +32,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { formatDateTime } from '@/lib/dates';
@@ -343,7 +344,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0 w-full max-w-full">
         <DataTable
           toolbarSlot={
             <DataTableToolbar
@@ -355,7 +356,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                 />
               }
               filterSlot={
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                   <FilterSelect
                     value={statusFilter}
                     onChange={setStatusFilter}
@@ -367,7 +368,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                       { value: 'SELESAI', label: 'Selesai' },
                       { value: 'DITOLAK', label: 'Ditolak' },
                     ]}
-                    className="w-[160px]"
+                    className="w-full sm:w-[160px]"
                   />
                   <FilterSelect
                     value={jenisFilter}
@@ -377,7 +378,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                       { value: 'PERMINTAAN_BARANG', label: 'Permintaan Barang' },
                       { value: 'LAPOR_KERUSAKAN', label: 'Lapor Kerusakan' },
                     ]}
-                    className="w-[180px]"
+                    className="w-full sm:w-[180px]"
                   />
                 </div>
               }
@@ -401,7 +402,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
           </DialogHeader>
 
           {accTarget && (
-            <div className="space-y-4 py-2">
+            <DialogBody className="space-y-4">
               <div className="rounded-lg border border-border bg-neutral-tint/40 p-3 space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-text-secondary">Nomor Tiket:</span>
@@ -461,7 +462,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                   className="resize-none h-20 text-xs"
                 />
               </FormField>
-            </div>
+            </DialogBody>
           )}
 
           <DialogFooter className="gap-2 sm:gap-0 pt-2">
@@ -500,7 +501,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <DialogBody className="space-y-4">
             <FormField label="Alasan Penolakan" required>
               <Textarea
                 placeholder="Masukkan alasan penolakan tiket ini..."
@@ -509,7 +510,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                 className="resize-none h-24 text-xs"
               />
             </FormField>
-          </div>
+          </DialogBody>
 
           <DialogFooter className="gap-2 sm:gap-0 pt-2">
             <Button

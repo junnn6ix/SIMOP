@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,85 +107,87 @@ function PbgFormContent({ initialData, onClose }: PbgFormContentProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-2">
-      {errorMessage && (
-        <div className="rounded-lg bg-error-tint border border-error/30 p-3 text-xs text-error font-medium">
-          {errorMessage}
+    <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <DialogBody className="space-y-4">
+        {errorMessage && (
+          <div className="rounded-lg bg-error-tint border border-error/30 p-3 text-xs text-error font-medium">
+            {errorMessage}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="Nomor SKRD" required description="Nomor ketetapan resmi unik">
+            <Input
+              value={noSkrd}
+              onChange={(e) => setNoSkrd(e.target.value.toUpperCase())}
+              placeholder="Misal: SKRD/2026/001"
+              disabled={isLoading}
+              className="text-xs uppercase font-mono"
+            />
+          </FormField>
+
+          <FormField label="Nama Pemohon / Pemilik" required>
+            <Input
+              value={pemohon}
+              onChange={(e) => setPemohon(e.target.value)}
+              placeholder="Nama lengkap pemohon..."
+              disabled={isLoading}
+              className="text-xs"
+            />
+          </FormField>
         </div>
-      )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Nomor SKRD" required description="Nomor ketetapan resmi unik">
-          <Input
-            value={noSkrd}
-            onChange={(e) => setNoSkrd(e.target.value.toUpperCase())}
-            placeholder="Misal: SKRD/2026/001"
-            disabled={isLoading}
-            className="text-xs uppercase font-mono"
-          />
-        </FormField>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            label="Nomor WhatsApp Pemohon"
+            required
+            description="Contoh: 08123456789 (akan dinormalisasi)"
+          >
+            <Input
+              type="tel"
+              value={noWa}
+              onChange={(e) => setNoWa(e.target.value)}
+              placeholder="08xxxxxxxxxx"
+              disabled={isLoading}
+              className="text-xs font-mono"
+            />
+          </FormField>
 
-        <FormField label="Nama Pemohon / Pemilik" required>
-          <Input
-            value={pemohon}
-            onChange={(e) => setPemohon(e.target.value)}
-            placeholder="Nama lengkap pemohon..."
-            disabled={isLoading}
-            className="text-xs"
-          />
-        </FormField>
-      </div>
+          <FormField label="Tanggal Jatuh Tempo" required>
+            <Input
+              type="date"
+              value={jatuhTempo}
+              onChange={(e) => setJatuhTempo(e.target.value)}
+              disabled={isLoading}
+              className="text-xs"
+            />
+          </FormField>
+        </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField
-          label="Nomor WhatsApp Pemohon"
-          required
-          description="Contoh: 08123456789 (akan dinormalisasi)"
-        >
+        <FormField label="Nominal Retribusi (Rupiah)" required>
           <Input
-            type="tel"
-            value={noWa}
-            onChange={(e) => setNoWa(e.target.value)}
-            placeholder="08xxxxxxxxxx"
+            type="number"
+            min={1}
+            step={1}
+            value={nominal}
+            onChange={(e) => setNominal(e.target.value ? Number(e.target.value) : '')}
+            placeholder="Contoh: 15000000"
             disabled={isLoading}
             className="text-xs font-mono"
           />
         </FormField>
 
-        <FormField label="Tanggal Jatuh Tempo" required>
-          <Input
-            type="date"
-            value={jatuhTempo}
-            onChange={(e) => setJatuhTempo(e.target.value)}
+        <FormField label="Lokasi Bangunan / Proyek" required>
+          <Textarea
+            value={lokasi}
+            onChange={(e) => setLokasi(e.target.value)}
+            placeholder="Alamat lengkap lokasi bangunan atau proyek perizinan..."
+            rows={3}
             disabled={isLoading}
-            className="text-xs"
+            className="resize-none text-xs"
           />
         </FormField>
-      </div>
-
-      <FormField label="Nominal Retribusi (Rupiah)" required>
-        <Input
-          type="number"
-          min={1}
-          step={1}
-          value={nominal}
-          onChange={(e) => setNominal(e.target.value ? Number(e.target.value) : '')}
-          placeholder="Contoh: 15000000"
-          disabled={isLoading}
-          className="text-xs font-mono"
-        />
-      </FormField>
-
-      <FormField label="Lokasi Bangunan / Proyek" required>
-        <Textarea
-          value={lokasi}
-          onChange={(e) => setLokasi(e.target.value)}
-          placeholder="Alamat lengkap lokasi bangunan atau proyek perizinan..."
-          rows={3}
-          disabled={isLoading}
-          className="resize-none text-xs"
-        />
-      </FormField>
+      </DialogBody>
 
       <DialogFooter className="gap-2 sm:gap-0 pt-2">
         <Button

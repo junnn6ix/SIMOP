@@ -7,6 +7,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/cn';
 
@@ -30,10 +31,10 @@ export function Modal({
   className,
 }: ModalProps) {
   const maxWMap = {
-    sm: 'max-w-sm',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
+    sm: 'sm:max-w-sm',
+    md: 'sm:max-w-lg',
+    lg: 'sm:max-w-2xl',
+    xl: 'sm:max-w-4xl',
   };
 
   return (
@@ -47,7 +48,7 @@ export function Modal({
             </DialogDescription>
           )}
         </DialogHeader>
-        <div className="pt-2">{children}</div>
+        <DialogBody>{children}</DialogBody>
       </DialogContent>
     </Dialog>
   );

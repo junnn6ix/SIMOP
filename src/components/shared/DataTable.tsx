@@ -67,7 +67,7 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className={cn('rounded-card border border-border bg-surface overflow-hidden', className)}>
+    <div className={cn('relative w-full min-w-0 max-w-full rounded-card border border-border bg-surface overflow-hidden [contain:paint]', className)}>
       {/* Integrated Header Toolbar inside the same card */}
       {toolbarSlot && (
         <div className="p-4 border-b border-border bg-surface">
@@ -76,7 +76,7 @@ export function DataTable<TData, TValue>({
       )}
 
       {/* Desktop Table & Optional Mobile Card View */}
-      <div>
+      <div className="relative w-full min-w-0 max-w-full overflow-hidden">
         {/* Mobile card mode if specified */}
         {asCardOnMobile && renderCard && (
           <div className="grid grid-cols-1 gap-3 p-4 md:hidden">
@@ -92,7 +92,7 @@ export function DataTable<TData, TValue>({
           </div>
         )}
 
-        <div className={cn('w-full overflow-x-auto', asCardOnMobile && 'hidden md:block')}>
+        <div className={cn('relative w-full min-w-0 overflow-x-auto overscroll-x-contain', asCardOnMobile && 'hidden md:block')}>
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border bg-muted/70 text-xs font-semibold uppercase tracking-wider text-text-primary">
               {table.getHeaderGroups().map((headerGroup) => (

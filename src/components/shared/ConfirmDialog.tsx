@@ -8,6 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
@@ -54,8 +55,12 @@ export function ConfirmDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription className="pt-1.5">{description}</DialogDescription>
         </DialogHeader>
+        <DialogBody className="py-4">
+          <DialogDescription className="text-sm text-text-secondary">
+            {description}
+          </DialogDescription>
+        </DialogBody>
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button

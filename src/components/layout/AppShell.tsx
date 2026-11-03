@@ -81,7 +81,7 @@ export function AppShell({ children, user, onSignOut }: AppShellProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex text-text-primary">
+    <div className="min-h-screen bg-background flex text-text-primary w-full max-w-full overflow-x-hidden">
         {/* Desktop Sidebar */}
         <Sidebar
           user={user}
@@ -90,7 +90,7 @@ export function AppShell({ children, user, onSignOut }: AppShellProps) {
         />
 
         {/* Main Content Column */}
-        <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-x-hidden">
           <TopHeader
             collapsed={collapsed}
             onToggleCollapse={handleToggleCollapse}
@@ -99,7 +99,7 @@ export function AppShell({ children, user, onSignOut }: AppShellProps) {
             user={user}
             onSignOut={handleSignOut}
           />
-          <main className="flex-1 flex flex-col">{children}</main>
+          <main className="flex-1 flex flex-col min-w-0 overflow-x-hidden">{children}</main>
         </div>
 
         {/* Mobile Drawer */}

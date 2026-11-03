@@ -214,7 +214,7 @@ export function PegawaiTable({ data }: PegawaiTableProps) {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-w-0 w-full max-w-full">
       <DataTable
         toolbarSlot={
           <DataTableToolbar

@@ -6,7 +6,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { FilterSelect } from '@/components/shared/FilterSelect';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog';
 import { formatDateShort } from '@/lib/dates';
 import { UploadLaporanDialog, UploadLaporanTarget } from './UploadLaporanDialog';
 
@@ -220,7 +220,7 @@ export function JadwalPegawaiTimeline({ initialItems }: JadwalPegawaiTimelinePro
             <DialogTitle>Bukti Pelaksanaan: {previewItem?.judul}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 pt-2">
+          <DialogBody className="space-y-4">
             {isLoadingPreview ? (
               <div className="p-8 text-center text-sm text-text-secondary">
                 Memuat berkas bukti...
@@ -256,7 +256,7 @@ export function JadwalPegawaiTimeline({ initialItems }: JadwalPegawaiTimelinePro
                 )}
               </div>
             )}
-          </div>
+          </DialogBody>
         </DialogContent>
       </Dialog>
     </div>

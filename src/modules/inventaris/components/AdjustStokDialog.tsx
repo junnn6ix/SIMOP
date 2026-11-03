@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,70 +81,72 @@ function AdjustStokFormContent({ target, onClose }: AdjustStokFormProps) {
     tipe === 'MASUK' ? target.stok + Number(jumlah || 0) : target.stok - Number(jumlah || 0);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-      <div className="p-3 rounded-panel bg-muted/40 border border-border text-xs space-y-1">
-        <div className="text-text-secondary">Barang:</div>
-        <div className="font-semibold text-text-primary text-sm">
-          {target.nama} ({target.kodeBarang})
+    <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <DialogBody className="space-y-4">
+        <div className="p-3 rounded-panel bg-muted/40 border border-border text-xs space-y-1">
+          <div className="text-text-secondary">Barang:</div>
+          <div className="font-semibold text-text-primary text-sm">
+            {target.nama} ({target.kodeBarang})
+          </div>
+          <div className="text-text-secondary">
+            Stok Saat Ini: <span className="font-semibold text-text-primary">{target.stok} {target.satuan || 'Pcs'}</span>
+          </div>
         </div>
-        <div className="text-text-secondary">
-          Stok Saat Ini: <span className="font-semibold text-text-primary">{target.stok} {target.satuan || 'Pcs'}</span>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Arah Mutasi" required>
-          <Select
-            value={tipe}
-            onValueChange={(val: any) => setTipe(val)}
-            disabled={isLoading}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="Arah Mutasi" required>
+            <Select
+              value={tipe}
+              onValueChange={(val: any) => setTipe(val)}
+              disabled={isLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih Arah" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MASUK">Penambahan (MASUK)</SelectItem>
+                <SelectItem value="KELUAR">Pengurangan (KELUAR)</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField label={`Jumlah (${target.satuan || 'Pcs'})`} required>
+            <Input
+              type="number"
+              min={1}
+              value={jumlah}
+              onChange={(e) => setJumlah(Math.max(1, parseInt(e.target.value) || 0))}
+              required
+              disabled={isLoading}
+            />
+          </FormField>
+        </div>
+
+        <div className="text-xs text-text-secondary flex items-center justify-between px-1">
+          <span>Perkiraan stok akhir:</span>
+          <span
+            className={`font-semibold font-mono ${
+              perkiraanStok < 0 ? 'text-error' : 'text-primary'
+            }`}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih Arah" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="MASUK">Penambahan (MASUK)</SelectItem>
-              <SelectItem value="KELUAR">Pengurangan (KELUAR)</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
+            {perkiraanStok} {target.satuan || 'Pcs'}
+          </span>
+        </div>
 
-        <FormField label={`Jumlah (${target.satuan || 'Pcs'})`} required>
+        <FormField
+          label="Alasan / Keterangan Penyesuaian"
+          required
+          description="Contoh: Pengadaan rutin dinas, barang rusak/kadaluarsa, opname fisik"
+        >
           <Input
-            type="number"
-            min={1}
-            value={jumlah}
-            onChange={(e) => setJumlah(Math.max(1, parseInt(e.target.value) || 0))}
+            value={keterangan}
+            onChange={(e) => setKeterangan(e.target.value)}
+            placeholder="Tuliskan alasan penyesuaian stok..."
             required
             disabled={isLoading}
           />
         </FormField>
-      </div>
-
-      <div className="text-xs text-text-secondary flex items-center justify-between px-1">
-        <span>Perkiraan stok akhir:</span>
-        <span
-          className={`font-semibold font-mono ${
-            perkiraanStok < 0 ? 'text-error' : 'text-primary'
-          }`}
-        >
-          {perkiraanStok} {target.satuan || 'Pcs'}
-        </span>
-      </div>
-
-      <FormField
-        label="Alasan / Keterangan Penyesuaian"
-        required
-        description="Contoh: Pengadaan rutin dinas, barang rusak/kadaluarsa, opname fisik"
-      >
-        <Input
-          value={keterangan}
-          onChange={(e) => setKeterangan(e.target.value)}
-          placeholder="Tuliskan alasan penyesuaian stok..."
-          required
-          disabled={isLoading}
-        />
-      </FormField>
+      </DialogBody>
 
       <DialogFooter className="gap-2 sm:gap-0 pt-2">
         <Button
