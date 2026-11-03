@@ -66,6 +66,72 @@ describe('Cloudflare R2 Storage Security & Key Generation', () => {
       })
     ).rejects.toThrow('Kunci objek tidak sesuai dengan identitas jadwal tugas.');
   });
+
+  it('checks maximum 5 MB via HeadObject and deletes object if oversized', async () => {
+    const sentCommands: any[] = [];
+    const mockS3Client = {
+      send: async (cmd: any) => {
+        sentCommands.push(cmd);
+        if (cmd.constructor.name === 'HeadObjectCommand') {
+          return {
+            ContentLength: 6 * 1024 * 1024, // 6 MB (oversized)
+            ContentType: 'image/jpeg',
+          };
+        }
+        if (cmd.constructor.name === 'DeleteObjectCommand') {
+          return {};
+        }
+        return {};
+      },
+    } as any;
+
+    await expect(
+      verifyR2Object({
+        objectKey: 'jadwal/task-1/huge-file.jpg',
+        jadwalId: 'task-1',
+        allowedMimes: ALLOWED_FOTO_MIMES,
+        s3Client: mockS3Client,
+      })
+    ).rejects.toThrow('Ukuran berkas melebihi batas maksimal 5 MB.');
+
+    // Prove that DeleteObjectCommand was sent to clean up R2
+    const deleteCmd = sentCommands.find((c) => c.constructor.name === 'DeleteObjectCommand');
+    expect(deleteCmd).toBeDefined();
+    expect(deleteCmd.input.Key).toBe('jadwal/task-1/huge-file.jpg');
+  });
+
+  it('checks Content-Type via HeadObject and deletes object if MIME is invalid', async () => {
+    const sentCommands: any[] = [];
+    const mockS3Client = {
+      send: async (cmd: any) => {
+        sentCommands.push(cmd);
+        if (cmd.constructor.name === 'HeadObjectCommand') {
+          return {
+            ContentLength: 1024 * 1024, // 1 MB
+            ContentType: 'application/x-msdownload', // Invalid exe MIME
+          };
+        }
+        if (cmd.constructor.name === 'DeleteObjectCommand') {
+          return {};
+        }
+        return {};
+      },
+    } as any;
+
+    await expect(
+      verifyR2Object({
+        objectKey: 'jadwal/task-1/bad-file.jpg',
+        jadwalId: 'task-1',
+        allowedMimes: ALLOWED_FOTO_MIMES,
+        s3Client: mockS3Client,
+      })
+    ).rejects.toThrow(/Format berkas.*tidak diizinkan/);
+
+    // Prove that DeleteObjectCommand was sent to clean up R2
+    const deleteCmd = sentCommands.find((c) => c.constructor.name === 'DeleteObjectCommand');
+    expect(deleteCmd).toBeDefined();
+    expect(deleteCmd.input.Key).toBe('jadwal/task-1/bad-file.jpg');
+  });
 });
 
 describe('Verifikasi Schema Rules', () => {
@@ -125,7 +191,6 @@ describe('Jadwal Pelaporan Schema Rules', () => {
       jadwalId: 'j-1',
       buktiKey: 'jadwal/j-1/evidence.jpg',
       pdfKey: 'jadwal/j-1/doc.pdf',
-      laporanTeks: 'Telah selesai dinas luar.',
     });
     expect(valid.success).toBe(true);
   });

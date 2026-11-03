@@ -42,30 +42,27 @@ export function VerifikasiCard({ item, onReview }: VerifikasiCardProps) {
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary pt-1 border-t border-border/60">
           <div className="flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5" />
-            <span>{formatDateShort(item.tanggalMulai)}</span>
+            <span>{formatDateShort(item.tanggal)}</span>
           </div>
 
           <div className="flex items-center gap-1.5">
-            {item.lokasiTipe === 'DALAM_KANTOR' ? (
-              <>
-                <Building className="h-3.5 w-3.5" />
-                <span>Dalam Kantor</span>
-              </>
+            {item.lokasiTipe === 'LOKET' || item.lokasiTipe === 'KANTOR' ? (
+              <Building className="h-3.5 w-3.5" />
             ) : (
-              <>
-                <MapPin className="h-3.5 w-3.5 text-primary" />
-                <span>Luar Kantor</span>
-              </>
+              <MapPin className="h-3.5 w-3.5 text-primary" />
             )}
+            <span>
+              {item.lokasiTipe === 'LOKET'
+                ? 'Loket Pelayanan'
+                : item.lokasiTipe === 'KECAMATAN'
+                ? 'Layanan Kecamatan'
+                : item.lokasiTipe === 'KANTOR'
+                ? 'Kantor Dinas'
+                : 'Lainnya / Lapangan'}
+            </span>
             {item.alamatLokasi && <span>• {item.alamatLokasi}</span>}
           </div>
         </div>
-
-        {item.laporanTeks && (
-          <p className="text-xs text-text-secondary bg-muted/40 p-2.5 rounded-btn line-clamp-2">
-            &ldquo;{item.laporanTeks}&rdquo;
-          </p>
-        )}
       </div>
 
       <div className="pt-2 border-t border-border flex items-center justify-between">

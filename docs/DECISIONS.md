@@ -100,6 +100,45 @@ Dokumen ini mencatat keputusan arsitektural dan teknis dalam pengembangan aplika
 
 ---
 
+## 12. Keamanan Presigned URL R2 & Penegakan Batas Ukuran 5 MB
+- **Keterbatasan Presigned PUT**:
+  Presigned URL PUT S3/Cloudflare R2 tidak dapat secara ketat memblokir ukuran payload yang diunggah klien secara langsung saat PUT berlangsung tanpa ketergantungan pada middleware eksternal.
+- **Pemberian Solusi melalui `verifyR2Object`**:
+  Celah tersebut ditutup secara ketat pada server saat pegawai mengonfirmasi penyelesaian tugas melalui Server Action `submitLaporanAction`. Server mengeksekusi `HeadObjectCommand` untuk memverifikasi `ContentLength <= 5 MB` dan `ContentType` yang valid. Bila berkas melanggar batas (misal ukuran melebihi 5 MB atau ekstensi/MIME palsu), server langsung menghapus objek dari R2 via `DeleteObjectCommand` dan menolak laporan tugas.
+
+---
+
+## 13. Kebijakan Barang Arsip, Tiket Tertunda, & Pemulihan
+- **Aturan Hapus vs Arsip**:
+  Barang tanpa riwayat tiket atau stok log dihapus permanen. Barang yang memiliki riwayat diarsipkan secara aman (`diarsipkan_pada = NOW()`).
+- **Tiket Berstatus `MENUNGGU` pada Barang yang Diarsipkan**:
+  Tiket tertunda yang sudah terlanjur diajukan sebelum barang diarsipkan tetap dipertahankan di sistem demi akuntabilitas. Admin dapat menolak tiket tersebut dengan catatan barang telah diarsipkan, atau memulihkan barang terlebih dahulu melalui `restoreBarangAction(id)` (`diarsipkan_pada = NULL`) sebelum menyetujui (ACC) permohonan.
+- **Pencegahan Pembuatan Tiket Baru**:
+  Fungsi query `getActiveBarangOptions` secara ketat memfilter `WHERE diarsipkan_pada IS NULL`, sehingga barang yang telah diarsipkan tidak dapat dipilih oleh pegawai pada formulir pengajuan tiket baru.
+
+---
+
+## 14. Penangguhan Fitur Cron Reminder & Bot WhatsApp (Fase 4)
+Sesuai arahan, fitur otomatisasi WhatsApp pada Fase 4 **ditangguhkan sementara** demi fokus pada stabilitas data retribusi PBG dan verifikasi domain:
+- **Komponen yang Ditangguhkan (TIDAK DIBUAT)**:
+  1. Route Handler `/api/cron/pbg-reminder` dan jadwal cron `vercel.json`.
+  2. Abstraksi `WaSender`, implementasi `FonnteWaSender`, `ConsoleWaSender`, `FONNTE_TOKEN`, dan `CRON_SECRET`.
+  3. Panel UI pengaturan bot WhatsApp, editor template pesan, tombol "Kirim Sekarang", dan tabel log pengiriman notifikasi.
+- **Pertahanan Skema**:
+  Tabel `pengaturan` (dengan default `wa_bot_aktif = 'false'` dan template reminder) serta tabel `notifikasi_log` tetap dipertahankan pada skema basis data dan tidak diubah, sehingga siap diaktifkan kembali tanpa migrasi ulang.
+
+---
+
+## 15. Penanganan Transaksi Atomik Pemotongan Stok & Double-ACC Tiket
+- **Klaim Tiket sebagai Langkah Pertama**:
+  Dalam transaksi `accTiketAction`, pernyataan pertama yang dieksekusi adalah:
+  `UPDATE tiket SET status = 'ACC', ... WHERE id = ? AND status = 'MENUNGGU' RETURNING *;`
+- **Jaminan Konkurensi**:
+  PostgreSQL secara otomatis memberikan row-level lock pada baris tiket tersebut. Apabila terjadi dua permintaan persetujuan secara bersamaan (misal dua admin mengklik ACC serentak via `Promise.all`), transaksi kedua akan mendapati 0 baris terpengaruh dan seketika dibatalkan (rollback). Hal ini menjamin stok barang hanya terpotong tepat satu kali dan mutasi stok ganda dicegah secara absolut tanpa distributed lock eksternal.
+
+
+---
+
 ## 12. Modul Jadwal, Penyimpanan R2 Privat & Siklus Verifikasi Laporan (Fase 2 Update)
 - **Bucket R2 Privat & Server-Generated Keys**:
   Bucket Cloudflare R2 dikonfigurasikan strictly private. Klien tidak pernah mengirim nama file kustom; Route Handler `/api/uploads/sign` menghasilkan key aman berformat `jadwal/{jadwalId}/{uuid}.{ext}`. Database hanya menyimpan `bukti_key` dan `pdf_key` (bukan URL permanen).
@@ -108,7 +147,7 @@ Dokumen ini mencatat keputusan arsitektural dan teknis dalam pengembangan aplika
 - **Pembersihan Berkas Otomatis Saat Revisi**:
   Jika laporan tugas pegawai sebelumnya ditolak (`TOLAK`) lalu pegawai mengunggah bukti perbaikan baru, Server Action `submitLaporanAction` secara otomatis memanggil `deleteR2Object()` untuk menghapus objek foto/PDF lama dari Cloudflare R2 guna mencegah penumpukan sampah berkas.
 - **Generator Jadwal Rentang**:
-  Fungsi domain `generateJadwalRange()` membatasi rentang maksimal 31 hari, menyediakan opsi `skipWeekends: true` (default) untuk melompati Sabtu & Minggu, menormalkan jam mulai/selesai dalam zona waktu WIB (08:00 - 16:00), dan mendukung penugasan multi-pegawai secara atomik.
+  Fungsi domain `generateJadwalRange()` membatasi rentang maksimal 31 hari, menyediakan opsi `skipWeekends: true` (default) untuk melompati Sabtu & Minggu, menormalkan tanggal kalender murni YYYY-MM-DD dalam zona waktu WIB (+07:00), dan mendukung penugasan multi-pegawai secara atomik tanpa menyisipkan jam dinas buatan.
 - **Siklus Hidup Status & Aturan Penolakan**:
   Transisi status divalidasi ketat melalui `validateStatusTransition()`:
   1. `BELUM_DIKERJAKAN` $\to$ `MENUNGGU_VERIFIKASI` (pegawai mengirim bukti foto wajib $\le$ 5 MB dan PDF opsional).
@@ -116,3 +155,56 @@ Dokumen ini mencatat keputusan arsitektural dan teknis dalam pengembangan aplika
   3. `MENUNGGU_VERIFIKASI` $\to$ `BELUM_DIKERJAKAN` (admin menolak; WAJIB menyertakan `catatanVerifikator` minimal 5 karakter sebagai petunjuk perbaikan bagi pegawai).
 - **Kontrak Halaman & Reduksi Efek Samping**:
   Seluruh halaman modul (`/admin/pegawai`, `/admin/jadwal`, `/admin/verifikasi`, `/pegawai/jadwal`) merupakan Server Component tipis ($\le 45$ baris) dengan `loading.tsx` dan `error.tsx`. Dialog formulir dipisahkan menjadi komponen konten ber-key untuk mengeliminasi efek samping cascading `setState` dalam `useEffect`.
+
+---
+
+## 16. Format Nomor Tiket & Catatan Administratif (Fase 3 & 4 Update)
+- **Format Nomor Tiket (`nomorTiket`)**:
+  Setiap pengajuan tiket layanan inventaris/kerusakan digenerate secara otomatis pada tingkat server dengan format terstandar: `TKT-YYYYMMDD-XXXX` (di mana `YYYYMMDD` mencerminkan tanggal pengajuan dalam zona waktu WIB dan `XXXX` adalah 4 karakter alfanumerik acak unik dalam huruf kapital). Kolom ini diindeks dan bersifat unik untuk memudahkan penelusuran fisik dan komunikasi verbal antar-pegawai.
+- **Kolom `catatan_admin` pada Tabel `tiket`**:
+  Tabel `tiket` sejak migrasi awal `0000` telah dilengkapi kolom `catatan_admin` (`text`). Kolom ini dimutasi secara atomik pada Server Actions:
+  1. Saat admin menyetujui tiket (`accTiketAction`): menyimpan petunjuk pengambilan barang atau instruksi pelaksanaan perbaikan teknis.
+  2. Saat admin menolak tiket (`rejectTiketAction`): menyimpan alasan penolakan secara transparan yang dapat dibaca oleh pemohon di antarmuka riwayat tiket pegawai.
+- **Dukungan Tiket Non-Katalog**:
+  Untuk permohonan `PERMINTAAN_BARANG` tanpa `barang_id` (pengadaan ad-hoc atau barang khusus non-katalog), admin tetap dapat menyetujui tiket (status menjadi `ACC`) tanpa melakukan pemotongan stok pada tabel `barang` dan tanpa mencatat mutasi pada tabel `stok_log`.
+
+---
+
+## 17. Dashboard Terpadu, Profil Keamanan, & Pencarian Cepat Global (Fase 5 Update)
+- **Arsitektur Dashboard Berbasis Peran (`src/modules/dashboard/`)**:
+  - Halaman `src/app/(app)/dashboard/page.tsx` bertindak sebagai Server Component tipis ($\le 45$ baris) yang mengevaluasi role pengguna dan merender komponen visual yang sesuai secara terpisah:
+    - **Dashboard Administrator**: Menyajikan 4 `StatCard` indikator utama, `DonutChart` distribusi penugasan hari ini yang dihitung murni di SQL dikelompokkan berdasarkan 4 `lokasi_tipe` sah (`KANTOR`, `LOKET`, `KECAMATAN`, `LAINNYA`) menggunakan tanggal kalender WIB dari `dates.ts`, serta 4 `AlertCard` berorientasi tindakan cepat (laporan menunggu verifikasi, tiket pending ACC, stok ATK menipis $\le \text{limit\_stok}$, tagihan PBG jatuh tempo $\le 3$ hari).
+    - **Dashboard Pegawai**: Menyajikan ringkasan kalender mingguan berstandar WIB (Senin s.d. Minggu), visualisasi `ProgressRing` capaian penyelesaian tugas, shortcut tindakan cepat ("Kirim Laporan" dan "Ajukan Tiket"), serta daftar linimasa penugasan minggu ini lengkap dengan `StatusBadge` dan badge lokasi tipe baru.
+- **Kueri Stok Menipis Dinamis di Tingkat SQL**:
+  - Alih-alih batas statis 5 unit, deteksi barang menipis menggunakan pembandingan kolom SQL langsung: `barang.stok <= barang.limit_stok` dan `barang.diarsipkan_pada IS NULL`. Kolom `limit_stok` (integer not null default 5) ditambahkan ke tabel `barang` dengan dukungan input kustom per-barang pada form modal inventaris.
+- **Manajemen Profil & Isolasi Sandi Mandiri (`/pegawai/profil`)**:
+  - Informasi identitas aparatur disajikan dalam mode baca (read-only) untuk menjamin integritas data kepegawaian.
+  - Aksi `changePasswordAction` secara ketat memverifikasi bahwa akun pemanggil berstatus aktif (`aktif === true`), memvalidasi panjang sandi ($\ge 8$), dan memicu `auth.api.changePassword` dengan parameter `revokeOtherSessions: true`. Sesi pada perangkat lain otomatis dibatalkan tanpa memberikan opsi memutasi sandi akun lain.
+- **Pencarian Cepat Global Berperingkat (`CommandMenu` / Ctrl+K)**:
+  - Mengintegrasikan dialog pencarian berbasis `cmdk` pada navigasi utama `TopNav` dengan listener keyboard `Cmd+K` / `Ctrl+K`.
+  - Eksekusi pencarian dilakukan melalui Server Action `globalSearchAction` yang dibatasi maksimal 8 item hasil relevan dan menerapkan debounce 250ms.
+  - Isolasi Hak Akses:
+    - Role `ADMIN` dapat mencari lintas entitas (pegawai, inventaris barang, dan retribusi PBG).
+    - Role `PEGAWAI` dibatasi secara ketat hanya dapat mencari jadwal tugas kedinasan miliknya sendiri (`WHERE pegawai_id = session.user.id`) serta katalog barang inventaris aktif untuk pengajuan tiket. Pegawai tidak pernah menerima hasil data aparatur lain, PBG, maupun jadwal rekan dinas lainnya.
+- **Strategi Content-Security-Policy (CSP) & Script-Src**:
+  - Dikonfigurasikan secara dinamis pada `next.config.ts`:
+    - **Pemisahan Environment**: Directiva `script-src` diatur menjadi `'self' 'unsafe-inline'` pada mode produksi (`process.env.NODE_ENV === 'production'`), sedangkan `'unsafe-eval'` HANYA disertakan pada mode development lokal untuk kebutuhan React Fast Refresh / source map tooling. Di lingkungan produksi Vercel, `'unsafe-eval'` sepenuhnya dihapus.
+    - **Pembenaran `'unsafe-inline'` di Produksi**: Pada Next.js 16 App Router (React 19), arsitektur *streaming Server Components (RSC)* memancarkan data hidrasi payload langsung ke dalam dokumen HTML melalui skrip inline (`self.__next_f.push(...)`). Pendekatan CSP dengan nonce dinamis per-permintaan pada infrastruktur serverless Vercel memerlukan Next.js middleware yang mematikan full Route Cache dan memicu overhead latensi TTFB. Dengan demikian, `'unsafe-inline'` untuk `script-src` dan `style-src` (diperlukan Tailwind dynamic style injection) dipertahankan, dan diimbangi dengan pertahanan mendalam (*defense-in-depth*): `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, sanitasi input ketat, dan `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+    - **Presisi Host R2 pada `connect-src` & `img-src`**: Menghilangkan wildcard satu level (`*.r2.cloudflarestorage.com`), digantikan dengan host presisi yang dibentuk langsung dari environment variable: `https://${R2_BUCKET_NAME}.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com` dan `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`.
+
+---
+
+## 18. Migrasi Kanonikal Tanggal Jadwal & Integritas Agregasi (Fase 5 Penyesuaian)
+- **Skema Kolom `tanggal date` Kanonikal (Migrasi 0004)**:
+  - Tabel `jadwal` mengembalikan kolom tanggal ke spesifikasi awal: 1 baris per hari dengan kolom `tanggal date` (bukan rentang timestamp `tanggal_mulai`/`tanggal_selesai`).
+  - Nilai tanggal dikirim dan disimpan murni berupa string `'YYYY-MM-DD'` berdasarkan kalender zona waktu WIB (`Asia/Jakarta`). Ini mengeliminasi risiko pergeseran hari kalender akibat konversi zona waktu UTC/WIB pada objek Date JavaScript.
+  - Migrasi `drizzle/0004_canonical_jadwal_tanggal.sql` mempertahankan seluruh data penugasan lama dengan mengonversi timestamp awal secara aman: `(tanggal_mulai AT TIME ZONE 'Asia/Jakarta')::date`.
+- **Penghitungan Pegawai Unik pada "Bertugas Hari Ini"**:
+  - Metrik "Bertugas Hari Ini" pada dashboard administrator dan visualisasi `DonutChart` menghitung jumlah aparatur unik via `countDistinct(jadwal.pegawaiId)` yang difilter pada `eq(jadwal.tanggal, todayWib)`.
+  - Jika seorang pegawai memiliki 2 atau lebih penugasan di lokasi yang sama atau berbeda pada hari yang sama, pegawai tersebut tepat dihitung sebagai 1 aparatur bertugas.
+- **Isolasi Keamanan E2E & Production Immunity**:
+  - Flag `PLAYWRIGHT === 'true'` dievaluasi secara defensif di `src/db/index.ts`: flag ini diabaikan sepenuhnya jika `process.env.VERCEL` aktif atau `NODE_ENV === 'production'`.
+  - Endpoint dan origin testing lokal (`http://localhost:3001`, `http://localhost:3002`) otomatis dikecualikan dari `trustedOrigins` di lingkungan produksi.
+  - Kebijakan rate limit (10 request/menit untuk login) dan secure cookies tetap aktif 100% di semua lingkungan tanpa relaksasi.
+- **Status Skrip Migrasi Satu Kali (`sync-snapshot.mjs`)**:
+  - Skrip `scripts/sync-snapshot.mjs` digunakan satu kali pada Fase 4 untuk sinkronisasi snapshot Drizzle Kit terhadap migrasi manual 0002. Skrip tersebut telah **dihapus secara permanen**. Migrasi skema berjalan dalam urutan kanonikal `0000`, `0001`, `0002`, dan `0003`, dengan verifikasi `pnpm db:generate` menghasilkan status `No schema changes, nothing to migrate 😴`.

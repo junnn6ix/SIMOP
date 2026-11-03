@@ -1,4 +1,6 @@
-import { toDate } from '@/lib/dates';
+import { toDate, toWibDateString } from '@/lib/dates';
+
+export type LokasiTipe = 'LOKET' | 'KECAMATAN' | 'KANTOR' | 'LAINNYA';
 
 export interface GenerateJadwalParams {
   judul: string;
@@ -6,7 +8,7 @@ export interface GenerateJadwalParams {
   tanggalMulai: Date | string;
   tanggalSelesai: Date | string;
   pegawaiIds: string[];
-  lokasiTipe: 'DALAM_KANTOR' | 'LUAR_KANTOR';
+  lokasiTipe: LokasiTipe;
   alamatLokasi?: string;
   skipWeekends?: boolean;
 }
@@ -15,10 +17,9 @@ export interface GeneratedJadwalItem {
   id: string;
   judul: string;
   deskripsi: string | null;
-  tanggalMulai: Date;
-  tanggalSelesai: Date;
+  tanggal: string; // YYYY-MM-DD
   pegawaiId: string;
-  lokasiTipe: 'DALAM_KANTOR' | 'LUAR_KANTOR';
+  lokasiTipe: LokasiTipe;
   alamatLokasi: string | null;
   status: 'BELUM_DIKERJAKAN';
 }
@@ -26,6 +27,7 @@ export interface GeneratedJadwalItem {
 /**
  * Generator jadwal tugas rentang tanggal untuk banyak pegawai sekaligus.
  * Memvalidasi batas maksimal rentang 31 hari dan memfilter hari akhir pekan (Sabtu & Minggu).
+ * Menghasilkan tanggal kalender murni YYYY-MM-DD (1 baris per hari per pegawai).
  */
 export function generateJadwalRange(params: GenerateJadwalParams): GeneratedJadwalItem[] {
   const {
@@ -50,19 +52,18 @@ export function generateJadwalRange(params: GenerateJadwalParams): GeneratedJadw
     throw new Error('Format tanggal mulai atau tanggal selesai tidak valid.');
   }
 
-  // Normalisasi waktu awal ke 08:00 WIB dan akhir ke 16:00 WIB
   const startTime = new Date(start);
-  startTime.setHours(8, 0, 0, 0);
+  startTime.setHours(0, 0, 0, 0);
 
   const endTime = new Date(end);
-  endTime.setHours(16, 0, 0, 0);
+  endTime.setHours(23, 59, 59, 999);
 
   if (endTime < startTime) {
     throw new Error('Tanggal selesai tidak boleh mendahului tanggal mulai.');
   }
 
   const diffMs = endTime.getTime() - startTime.getTime();
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24)) + 1;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays > 31) {
     throw new Error('Rentang pembuatan jadwal maksimal adalah 31 hari.');
@@ -70,26 +71,19 @@ export function generateJadwalRange(params: GenerateJadwalParams): GeneratedJadw
 
   const items: GeneratedJadwalItem[] = [];
 
-  // Loop setiap hari dalam rentang
   const current = new Date(startTime);
   while (current <= endTime) {
     const dayOfWeek = current.getDay(); // 0 = Minggu, 6 = Sabtu
 
-    // Jika skipWeekends aktif, lewati hari Sabtu (6) dan Minggu (0)
     if (!(skipWeekends && (dayOfWeek === 0 || dayOfWeek === 6))) {
+      const tanggalString = toWibDateString(current);
+
       for (const pegawaiId of pegawaiIds) {
-        const itemMulai = new Date(current);
-        itemMulai.setHours(8, 0, 0, 0);
-
-        const itemSelesai = new Date(current);
-        itemSelesai.setHours(16, 0, 0, 0);
-
         items.push({
           id: crypto.randomUUID(),
           judul: judul.trim(),
           deskripsi: deskripsi?.trim() || null,
-          tanggalMulai: itemMulai,
-          tanggalSelesai: itemSelesai,
+          tanggal: tanggalString,
           pegawaiId,
           lokasiTipe,
           alamatLokasi: alamatLokasi?.trim() || null,
@@ -98,50 +92,38 @@ export function generateJadwalRange(params: GenerateJadwalParams): GeneratedJadw
       }
     }
 
-    // Maju 1 hari
     current.setDate(current.getDate() + 1);
   }
 
   return items;
 }
 
-export type JadwalStatus =
-  | 'BELUM_DIKERJAKAN'
-  | 'MENUNGGU_VERIFIKASI'
-  | 'SELESAI'
-  | 'DITOLAK';
+export interface ValidateStatusParams {
+  currentStatus: 'BELUM_DIKERJAKAN' | 'MENUNGGU_VERIFIKASI' | 'SELESAI' | 'DITOLAK' | string;
+  targetStatus: 'BELUM_DIKERJAKAN' | 'MENUNGGU_VERIFIKASI' | 'SELESAI' | 'DITOLAK' | string;
+  catatanVerifikator?: string | null;
+}
 
 /**
- * Validasi transisi status siklus hidup jadwal tugas:
- * 1. BELUM_DIKERJAKAN -> MENUNGGU_VERIFIKASI (oleh pegawai setelah submit laporan & foto bukti)
- * 2. MENUNGGU_VERIFIKASI -> SELESAI (oleh admin via verifikasi ACC)
- * 3. MENUNGGU_VERIFIKASI -> BELUM_DIKERJAKAN (oleh admin via verifikasi Tolak, WAJIB catatan verifikator)
+ * Validasi transisi status tugas
  */
-export function validateStatusTransition(params: {
-  currentStatus: JadwalStatus;
-  targetStatus: JadwalStatus;
-  catatanVerifikator?: string | null;
-}): void {
+export function validateStatusTransition(params: ValidateStatusParams): void {
   const { currentStatus, targetStatus, catatanVerifikator } = params;
 
   if (currentStatus === 'BELUM_DIKERJAKAN' && targetStatus === 'MENUNGGU_VERIFIKASI') {
     return;
   }
 
-  if (currentStatus === 'MENUNGGU_VERIFIKASI') {
-    if (targetStatus === 'SELESAI') {
-      return;
-    }
-    if (targetStatus === 'BELUM_DIKERJAKAN') {
-      if (!catatanVerifikator || !catatanVerifikator.trim()) {
-        throw new Error('Catatan verifikator wajib diisi saat menolak laporan tugas.');
-      }
-      return;
-    }
+  if (currentStatus === 'MENUNGGU_VERIFIKASI' && targetStatus === 'SELESAI') {
+    return;
   }
 
-  throw new Error(
-    `Transisi status tidak valid dari ${currentStatus} ke ${targetStatus}.`
-  );
-}
+  if (currentStatus === 'MENUNGGU_VERIFIKASI' && targetStatus === 'BELUM_DIKERJAKAN') {
+    if (!catatanVerifikator || catatanVerifikator.trim().length === 0) {
+      throw new Error('Catatan verifikator wajib diisi saat menolak laporan tugas.');
+    }
+    return;
+  }
 
+  throw new Error(`Transisi status jadwal dari ${currentStatus} ke ${targetStatus} tidak diizinkan.`);
+}

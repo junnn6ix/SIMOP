@@ -1,4 +1,4 @@
-import { desc, eq, and, sql, or, ilike } from 'drizzle-orm';
+import { desc, eq, and, or, ilike } from 'drizzle-orm';
 import { db } from '@/db';
 import { jadwal } from '@/db/schema/domain';
 import { user } from '@/db/schema/auth';
@@ -41,8 +41,7 @@ export async function getJadwalAdminList(filters: JadwalFilterParams = {}) {
       id: jadwal.id,
       judul: jadwal.judul,
       deskripsi: jadwal.deskripsi,
-      tanggalMulai: jadwal.tanggalMulai,
-      tanggalSelesai: jadwal.tanggalSelesai,
+      tanggal: jadwal.tanggal,
       pegawaiId: jadwal.pegawaiId,
       pegawaiName: user.name,
       pegawaiUsername: user.username,
@@ -50,7 +49,6 @@ export async function getJadwalAdminList(filters: JadwalFilterParams = {}) {
       lokasiTipe: jadwal.lokasiTipe,
       alamatLokasi: jadwal.alamatLokasi,
       status: jadwal.status,
-      laporanTeks: jadwal.laporanTeks,
       catatanVerifikator: jadwal.catatanVerifikator,
       buktiKey: jadwal.buktiKey,
       pdfKey: jadwal.pdfKey,
@@ -61,7 +59,7 @@ export async function getJadwalAdminList(filters: JadwalFilterParams = {}) {
     .from(jadwal)
     .innerJoin(user, eq(jadwal.pegawaiId, user.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(jadwal.tanggalMulai), desc(jadwal.createdAt));
+    .orderBy(desc(jadwal.tanggal), desc(jadwal.createdAt));
 
   return await query;
 }
@@ -78,12 +76,10 @@ export async function getJadwalPegawaiList(pegawaiId: string, statusFilter?: str
       id: jadwal.id,
       judul: jadwal.judul,
       deskripsi: jadwal.deskripsi,
-      tanggalMulai: jadwal.tanggalMulai,
-      tanggalSelesai: jadwal.tanggalSelesai,
+      tanggal: jadwal.tanggal,
       lokasiTipe: jadwal.lokasiTipe,
       alamatLokasi: jadwal.alamatLokasi,
       status: jadwal.status,
-      laporanTeks: jadwal.laporanTeks,
       catatanVerifikator: jadwal.catatanVerifikator,
       buktiKey: jadwal.buktiKey,
       pdfKey: jadwal.pdfKey,
@@ -92,7 +88,7 @@ export async function getJadwalPegawaiList(pegawaiId: string, statusFilter?: str
     })
     .from(jadwal)
     .where(and(...conditions))
-    .orderBy(desc(jadwal.tanggalMulai), desc(jadwal.createdAt));
+    .orderBy(desc(jadwal.tanggal), desc(jadwal.createdAt));
 
   return items;
 }
@@ -103,8 +99,7 @@ export async function getJadwalById(id: string) {
       id: jadwal.id,
       judul: jadwal.judul,
       deskripsi: jadwal.deskripsi,
-      tanggalMulai: jadwal.tanggalMulai,
-      tanggalSelesai: jadwal.tanggalSelesai,
+      tanggal: jadwal.tanggal,
       pegawaiId: jadwal.pegawaiId,
       pegawaiName: user.name,
       pegawaiUsername: user.username,
@@ -112,13 +107,13 @@ export async function getJadwalById(id: string) {
       lokasiTipe: jadwal.lokasiTipe,
       alamatLokasi: jadwal.alamatLokasi,
       status: jadwal.status,
-      laporanTeks: jadwal.laporanTeks,
       catatanVerifikator: jadwal.catatanVerifikator,
       buktiKey: jadwal.buktiKey,
       pdfKey: jadwal.pdfKey,
       diverifikasiOlehId: jadwal.diverifikasiOlehId,
       diverifikasiPada: jadwal.diverifikasiPada,
       createdAt: jadwal.createdAt,
+      updatedAt: jadwal.updatedAt,
     })
     .from(jadwal)
     .innerJoin(user, eq(jadwal.pegawaiId, user.id))
@@ -129,7 +124,7 @@ export async function getJadwalById(id: string) {
 }
 
 export async function getActivePegawaiOptions() {
-  const pegawais = await db
+  return await db
     .select({
       id: user.id,
       name: user.name,
@@ -137,9 +132,6 @@ export async function getActivePegawaiOptions() {
       bidang: user.bidang,
     })
     .from(user)
-    .where(and(eq(user.aktif, true), eq(user.banned, false)))
+    .where(and(eq(user.role, 'PEGAWAI'), eq(user.aktif, true)))
     .orderBy(user.name);
-
-  return pegawais;
 }
-

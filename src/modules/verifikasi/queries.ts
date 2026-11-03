@@ -9,8 +9,7 @@ export async function getVerifikasiQueue() {
       id: jadwal.id,
       judul: jadwal.judul,
       deskripsi: jadwal.deskripsi,
-      tanggalMulai: jadwal.tanggalMulai,
-      tanggalSelesai: jadwal.tanggalSelesai,
+      tanggal: jadwal.tanggal,
       pegawaiId: jadwal.pegawaiId,
       pegawaiName: user.name,
       pegawaiUsername: user.username,
@@ -18,7 +17,6 @@ export async function getVerifikasiQueue() {
       lokasiTipe: jadwal.lokasiTipe,
       alamatLokasi: jadwal.alamatLokasi,
       status: jadwal.status,
-      laporanTeks: jadwal.laporanTeks,
       catatanVerifikator: jadwal.catatanVerifikator,
       buktiKey: jadwal.buktiKey,
       pdfKey: jadwal.pdfKey,
@@ -32,4 +30,3 @@ export async function getVerifikasiQueue() {
 
   return items;
 }
-

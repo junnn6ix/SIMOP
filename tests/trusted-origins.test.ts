@@ -32,5 +32,18 @@ describe('trustedOrigins formatting & validation', () => {
     // Ensure wildcard is not present
     expect(origins.some((o) => o.includes('*'))).toBe(false);
   });
+
+  it('excludes localhost origins in production or Vercel environment', () => {
+    const prodOrigins = resolveTrustedOrigins({
+      NODE_ENV: 'production',
+      VERCEL: '1',
+      NEXT_PUBLIC_APP_URL: 'https://simop.karawangkab.go.id',
+      VERCEL_PROJECT_PRODUCTION_URL: 'simop-production.vercel.app',
+    });
+
+    expect(prodOrigins.some((o) => o.includes('localhost'))).toBe(false);
+    expect(prodOrigins).toContain('https://simop.karawangkab.go.id');
+    expect(prodOrigins).toContain('https://simop-production.vercel.app');
+  });
 });
 

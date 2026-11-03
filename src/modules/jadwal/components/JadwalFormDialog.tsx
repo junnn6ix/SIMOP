@@ -62,7 +62,7 @@ function JadwalFormContent({ pegawaiOptions, onClose }: JadwalFormContentProps) 
       tanggalMulai: todayStr,
       tanggalSelesai: todayStr,
       pegawaiIds: [],
-      lokasiTipe: 'DALAM_KANTOR',
+      lokasiTipe: 'KANTOR',
       alamatLokasi: '',
       skipWeekends: true,
     },
@@ -193,8 +193,10 @@ function JadwalFormContent({ pegawaiOptions, onClose }: JadwalFormContentProps) 
                   <SelectValue placeholder="Pilih Tipe Lokasi" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DALAM_KANTOR">Dalam Kantor</SelectItem>
-                  <SelectItem value="LUAR_KANTOR">Luar Kantor / Lapangan</SelectItem>
+                  <SelectItem value="LOKET">Loket Pelayanan</SelectItem>
+                  <SelectItem value="KECAMATAN">Layanan Kecamatan</SelectItem>
+                  <SelectItem value="KANTOR">Kantor Dinas</SelectItem>
+                  <SelectItem value="LAINNYA">Lainnya / Lapangan</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -203,7 +205,7 @@ function JadwalFormContent({ pegawaiOptions, onClose }: JadwalFormContentProps) 
 
         <FormField
           label="Alamat / Ruang Pelaksanaan"
-          description={lokasiTipe === 'DALAM_KANTOR' ? 'Contoh: Ruang Pelayanan Lantai 1' : 'Contoh: Lokasi Pabrik Kawasan KIIC'}
+          description={lokasiTipe === 'KANTOR' || lokasiTipe === 'LOKET' ? 'Contoh: Ruang Pelayanan Lantai 1 / Loket' : 'Contoh: Kantor Kecamatan Karawang Barat / Kawasan KIIC'}
           error={errors.alamatLokasi?.message}
         >
           <Input

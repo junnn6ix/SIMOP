@@ -32,7 +32,6 @@ interface UploadFormProps {
 function UploadFormContent({ jadwal, onClose, onSuccess }: UploadFormProps) {
   const [fotoFile, setFotoFile] = React.useState<File | null>(null);
   const [pdfFile, setPdfFile] = React.useState<File | null>(null);
-  const [laporanTeks, setLaporanTeks] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
@@ -123,7 +122,6 @@ function UploadFormContent({ jadwal, onClose, onSuccess }: UploadFormProps) {
         jadwalId: jadwal.id,
         buktiKey: fotoKey,
         pdfKey: pdfKey || null,
-        laporanTeks: laporanTeks.trim() || null,
       });
 
       toast.success(res.message);
@@ -183,19 +181,6 @@ function UploadFormContent({ jadwal, onClose, onSuccess }: UploadFormProps) {
           disabled={isSubmitting}
         />
       </div>
-
-      <FormField
-        label="Catatan & Ringkasan Laporan"
-        description="Tuliskan ringkasan hasil kegiatan pelaksanaan tugas (opsional)"
-      >
-        <Textarea
-          value={laporanTeks}
-          onChange={(e) => setLaporanTeks(e.target.value)}
-          placeholder="Contoh: Telah melaksanakan verifikasi lapangan ke lokasi pemohon..."
-          rows={3}
-          disabled={isSubmitting}
-        />
-      </FormField>
 
       <FormActions
         submitLabel={isSubmitting ? 'Mengunggah & Mengirim...' : 'Kirim Laporan'}

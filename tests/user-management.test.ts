@@ -5,10 +5,21 @@ import { deactivateUser, activateUser } from '@/lib/user-management';
 vi.mock('@/db', () => ({
   db: {
     transaction: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
+vi.mock('@/lib/session', () => ({
+  requireRole: vi.fn().mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } }),
+}));
+
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+}));
+
 import { db } from '@/db';
+import { resetPegawaiPasswordAction } from '@/modules/pegawai/actions';
 
 describe('user-management service (Atomic Deactivation & Protections)', () => {
   beforeEach(() => {
@@ -119,5 +130,24 @@ describe('user-management service (Atomic Deactivation & Protections)', () => {
     expect(result.success).toBe(true);
     expect(result.message).toContain('berhasil diaktifkan');
     expect(mockTx.update).toHaveBeenCalled();
+  });
+
+  it('revokes all active sessions when administrator resets pegawai password', async () => {
+    const mockUpdateWhere = vi.fn().mockResolvedValue({ rowCount: 1 });
+    const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere });
+    vi.mocked(db.update).mockReturnValue({ set: mockUpdateSet } as any);
+
+    const mockDeleteWhere = vi.fn().mockResolvedValue({ rowCount: 2 });
+    vi.mocked(db.delete).mockReturnValue({ where: mockDeleteWhere } as any);
+
+    const res = await resetPegawaiPasswordAction({
+      userId: 'pegawai-target-id',
+      newPassword: 'NewSecurePassword123!',
+    });
+
+    expect(res.success).toBe(true);
+    expect(db.update).toHaveBeenCalled();
+    expect(db.delete).toHaveBeenCalled();
+    expect(mockDeleteWhere).toHaveBeenCalled();
   });
 });

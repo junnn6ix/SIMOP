@@ -1,108 +1,252 @@
 # SIMOP DPMPTSP
 **Sistem Informasi Manajemen Operasional DPMPTSP Kabupaten Karawang**
 
-Aplikasi web internal modern untuk penjadwalan tugas pegawai, verifikasi laporan lapangan, manajemen inventaris (ATK/aset) & tiket permohonan/kerusakan, serta monitoring retribusi Persetujuan Bangunan Gedung (PBG).
+Aplikasi web internal modern untuk penjadwalan tugas aparatur sipil dinas, verifikasi laporan foto & dokumen dinas, manajemen inventaris (ATK/aset) beserta sistem tiket permohonan & kerusakan, serta monitoring retribusi Persetujuan Bangunan Gedung (PBG).
 
 ---
 
-## 🛠️ Tech Stack
-- **Framework**: Next.js 16 (App Router, Server Components, Server Actions)
-- **Bahasa**: TypeScript (Strict Mode)
-- **Styling**: Tailwind CSS + shadcn/ui primitives di-skin penuh mengikuti `docs/DESIGN.md` (Genesis)
-- **Icons & Primitives**: Lucide React, Radix UI, TanStack Table, Sonner Toast, cmdk (Command Menu)
-- **Database & ORM**: PostgreSQL (Neon) + Drizzle ORM (pooled connection untuk interactive transactions)
-- **Autentikasi**: Better Auth (Username + Admin plugins, database rate limiting, disabled public registration)
-- **Storage**: Cloudflare R2 (S3-compatible, presigned PUT/GET URLs)
-- **WhatsApp**: Abstraksi `WaSender` (Fonnte provider + ConsoleWaSender untuk dev/test)
-- **Testing**: Vitest (domain logic & security policies) + Playwright (smoke e2e)
+## 🛠️ Arsitektur & Tech Stack
+- **Framework**: Next.js 16 (App Router, React Server Components, Server Actions, TypeScript Strict)
+- **Desain & UI**: Genesis Design System (`docs/DESIGN.md`) dengan Tailwind CSS, shadcn/ui primitives ter-skin, class-variance-authority (cva), Lucide Icons, TanStack Table, Sonner Toast, cmdk (Command Menu), dan DotGrid canvas.
+- **Basis Data**: PostgreSQL di Neon (Region Singapura `sin1`).
+- **ORM & Driver**: Drizzle ORM + PostgreSQL connection pooler (`pg` Pool) untuk menjamin dukungan transaksi interaktif (`db.transaction()`) dan row-level locking pada klaim tiket inventaris.
+- **Autentikasi & Otorisasi**: Better Auth (plugin username & admin) dengan penyimpanan rate-limit persisten di database PostgreSQL (10 req/menit per IP), session cookie httpOnly, proteksi brute-force via proxy header `x-real-ip`, serta pendaftaran publik dinonaktifkan secara ketat.
+- **Penyimpanan Berkas**: Cloudflare R2 privat (S3-compatible API) dengan presigned URL berbatas waktu dan penegakan batas 5 MB pada tingkat server.
+- **Pengujian**: Vitest (unit domain, konkurensi database nyata PostgreSQL, dan kebijakan Better Auth) + Playwright (smoke e2e).
 
 ---
 
-## 🔒 Keamanan & Origin Terpercaya (`trustedOrigins`)
-Better Auth dikonfigurasi secara ketat tanpa wildcard domain global (`*.vercel.app` dinonaktifkan). Domain yang diizinkan dibaca secara eksplisit dari environment variable:
-- `NEXT_PUBLIC_APP_URL` / `BETTER_AUTH_URL`: URL utama aplikasi (misal `https://simop.karawangkab.go.id` atau `http://localhost:3000`).
-- `VERCEL_PROJECT_PRODUCTION_URL`: URL deployment produksi otomatis Vercel.
-- `SIMOP_PREVIEW_DOMAIN`: Pola domain branch preview spesifik proyek SIMOP (misal `simop-dpmptsp-*.vercel.app`).
+## 📋 Checklist Environment Variables
+
+| Variabel | Keterangan | Contoh / Nilai |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | Connection string PostgreSQL dengan **Connection Pooling** (Neon pooler) untuk runtime aplikasi serverless Next.js | `postgresql://user:pass@ep-*-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require` |
+| `DATABASE_URL_UNPOOLED` | Connection string PostgreSQL langsung (direct/unpooled) untuk mengeksekusi Drizzle migrations / DDL schema | `postgresql://user:pass@ep-*.ap-southeast-1.aws.neon.tech/neondb?sslmode=require` |
+| `DATABASE_URL_TEST` | Database terisolasi khusus pengujian (`neondb_test`). Pengujian otomatis menolak berjalan jika kosong atau sama dengan `DATABASE_URL` | `postgresql://user:pass@ep-*-pooler.ap-southeast-1.aws.neon.tech/neondb_test?sslmode=require` |
+| `BETTER_AUTH_SECRET` | Kunci enkripsi sesi Better Auth (minimal 32 karakter acak) | `openssl rand -hex 32` |
+| `BETTER_AUTH_URL` | URL absolut instans aplikasi Better Auth | `http://localhost:3000` / `https://simop.karawangkab.go.id` |
+| `NEXT_PUBLIC_APP_URL` | URL publik aplikasi web yang digunakan browser klien | `http://localhost:3000` / `https://simop.karawangkab.go.id` |
+| `VERCEL_PROJECT_PRODUCTION_URL` | Domain produksi Vercel (tanpa protokol) untuk validasi CORS terpercaya | `simop-dpmptsp.vercel.app` |
+| `R2_ACCOUNT_ID` | Cloudflare Account ID untuk bucket R2 privat | String ID akun Cloudflare |
+| `R2_ACCESS_KEY_ID` | Access Key ID token R2 dengan izin Read & Write | Token API R2 |
+| `R2_SECRET_ACCESS_KEY` | Secret Access Key token R2 | Secret API R2 |
+| `R2_BUCKET_NAME` | Nama bucket Cloudflare R2 | `simop-dpmptsp-uploads` |
+| `SEED_ADMIN_PASSWORD` | Password akun default `admin` saat seeder dijalankan | Password kuat pilihan admin |
+| `SEED_PEGAWAI_PASSWORD` | Password akun pegawai bawaan saat seeder dijalankan | Password kuat pilihan dinas |
+| `E2E_ADMIN_USERNAME` | Username pengujian E2E Playwright | `admin` |
+| `E2E_ADMIN_PASSWORD` | Password pengujian E2E Playwright | Sesuai `SEED_ADMIN_PASSWORD` |
+| `E2E_PEGAWAI_USERNAME` | Username pengujian E2E Playwright role pegawai | `pegawai_ptsp` |
+| `E2E_PEGAWAI_PASSWORD` | Password pengujian E2E Playwright role pegawai | Sesuai `SEED_PEGAWAI_PASSWORD` |
+
+---
+
+## ☁️ Konfigurasi CORS Cloudflare R2
+Untuk mengizinkan pengunggahan langsung berkas bukti laporan (foto & PDF) melalui presigned URL PUT dari browser klien ke Cloudflare R2, konfigurasi CORS bucket R2 wajib menyertakan aturan berikut:
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "http://localhost:3000",
+      "https://simop.karawangkab.go.id",
+      "https://simop-dpmptsp.vercel.app"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "PUT",
+      "HEAD"
+    ],
+    "AllowedHeaders": [
+      "*"
+    ],
+    "ExposeHeaders": [
+      "ETag"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
 
 ---
 
 ## 🚀 Memulai (Local Development)
 
 ### 1. Prasyarat
-- Node.js >= 20
-- pnpm >= 9
+- Node.js >= 20.x
+- pnpm >= 9.x
 
 ### 2. Instalasi Dependensi
 ```bash
 pnpm install
 ```
 
-### 3. Konfigurasi Environment
-Salin file `.env.example` ke `.env.local`:
+### 3. Konfigurasi Berkas Lingkungan
+Salin `.env.example` ke `.env.local`:
 ```bash
 cp .env.example .env.local
 ```
-Sesuaikan nilai `DATABASE_URL` dengan connection string Neon PostgreSQL Anda.
+Lengkapi nilai `DATABASE_URL` dan `DATABASE_URL_TEST` dari dashboard Neon Anda.
 
-### 4. Database Migrations & Seeding
+### 4. Eksekusi Migrasi Database
 ```bash
-# Menjalankan migrasi Drizzle ke PostgreSQL
+# Menjalankan migrasi skema Drizzle ke PostgreSQL
 pnpm db:migrate
+```
 
-# Menjalankan seeder awal (Admin, Pegawai, Inventaris, Pengaturan)
+### 5. Seeding Data Awal
+```bash
 pnpm db:seed
 ```
-*Catatan Seeder:*
-- Pada environment development, password akun di-generate secara acak dan dicetak ke konsol bila `SEED_ADMIN_PASSWORD` dan `SEED_PEGAWAI_PASSWORD` tidak diset di `.env.local`.
-- Seeder dilindungi dari eksekusi tidak sengaja di production; memerlukan flag eksplisit `--force-production`.
+*Catatan Keamanan Seeding:*
+- Seeder membuat 1 akun `ADMIN` (`admin`) dan 3 akun `PEGAWAI` berbidang sah (`SEKRETARIAT`, `PTSP`, `PM`).
+- Jika dijalankan di environment `production` (`NODE_ENV=production`), seeder secara otomatis **menolak berjalan** kecuali disertakan flag eksplisit `--force-production`.
 
-### 5. Menjalankan Server Pengembangan
+### 6. Menjalankan Aplikasi
 ```bash
 pnpm dev
 ```
-Buka browser di `http://localhost:3000`.
-
-### 6. Galeri Komponen (Design System)
-Buka `http://localhost:3000/dev/ui` untuk melihat seluruh katalog komponen UI, layout, dan shared yang diimplementasikan sesuai Genesis Design System.
+Akses di `http://localhost:3000`. Kredensial bawaan admin: username `admin`, password sesuai yang dikonfigurasikan pada `SEED_ADMIN_PASSWORD`.
 
 ---
 
-## 🧪 Validasi & Pengujian
+## 🧪 Validasi, Kualitas Kode & Pengujian
+
+Aplikasi dilengkapi dengan rangkaian pengujian komprehensif tanpa kompromi:
+
 ```bash
-# Validasi tipe data TypeScript
-pnpm typecheck
-
-# Linter kode
-pnpm lint
-
-# Unit & security policies testing (Vitest)
-pnpm test
-
-# Verifikasi kepatuhan token warna (tanpa hex di luar globals.css)
+# 1. Pengecekan Kepatuhan Token Desain (Genesis Design System)
+# Memastikan 0 warna hardcoded hex di luar globals.css
 pnpm check:tokens
 
-# Build produksi
+# 2. Pengecekan Tipe Data TypeScript
+pnpm typecheck
+
+# 3. Linter Kode (ESLint flat config)
+pnpm lint
+
+# 4. Pengujian Otomatis (Vitest)
+# Menguji generator jadwal rentang, transisi status tiket, verifikasi berkas R2,
+# query stok menipis di SQL, ketahanan race-condition double-ACC pada PostgreSQL nyata,
+# isolasi data pencarian global, serta kebijakan Better Auth
+pnpm test
+
+# 5. Playwright Smoke Test (E2E)
+pnpm test:e2e
+
+# 6. Kompilasi Produksi Next.js
 pnpm build
 ```
 
 ---
 
-## 📁 Struktur Direktori
-```
-src/
-├── app/                  # Next.js App Router (Halaman & API)
-│   ├── (auth)/login/     # Login dengan AuthLayout & DotGrid
-│   ├── (app)/            # Halaman terlindungi (AppShell terpusat di layout.tsx)
-│   │   └── dashboard/    # Dashboard ringkas per role
-│   ├── dev/ui/           # Galeri komponen interaktif (dev only)
-│   └── api/              # Route handlers (auth, uploads, cron)
-├── components/
-│   ├── ui/               # Primitif shadcn ter-skin (Button, Input, dll)
-│   ├── layout/           # AppShell, TopNav, PageContainer, dll
-│   └── shared/           # Card, DataTable, StatusBadge, dll
-├── modules/              # Fitur domain (schema, queries, actions, components)
-├── config/               # Navigasi per role & metadata
-├── db/                   # Drizzle schema, client, & seed
-├── lib/                  # Auth, env, storage, wa, utils
-└── styles/               # globals.css (token CSS variables)
-```
+## 🚀 Panduan Deployment ke Vercel (Langkah demi Langkah)
+
+### Langkah 1: Persiapan Database Neon (PostgreSQL)
+1. Buat project baru di [Neon Console](https://console.neon.tech) dengan Region **Asia Pacific (Singapore) `ap-southeast-1`**.
+2. Salin connection string **Pooled** ke variabel `DATABASE_URL`.
+3. Buat branch terpisah untuk pengujian (misal `neondb_test`) dan salin ke `DATABASE_URL_TEST`.
+
+### Langkah 2: Persiapan Cloudflare R2
+1. Buat bucket privat di [Cloudflare Dashboard](https://dash.cloudflare.com) > R2 Object Storage bernama `simop-dpmptsp-storage`.
+2. Dapatkan API token R2 dengan izin `Object Read & Write`.
+3. Di tab *Settings* bucket R2, masukkan konfigurasi CORS sesuai bagian [Konfigurasi CORS Cloudflare R2](#️-konfigurasi-cors-cloudflare-r2).
+
+### Langkah 3: Menghubungkan Repository ke Vercel
+1. Buka [Vercel Dashboard](https://vercel.com) > **Add New Project** > Import repository SIMOP DPMPTSP.
+2. Pengaturan Framework Preset: **Next.js**.
+3. Build Command: `pnpm build` (atau biarkan default).
+4. Pastikan `vercel.json` menyertakan `"regions": ["sin1"]` agar serverless function berada di region Singapura.
+
+### Langkah 4: Memasukkan Environment Variables di Vercel
+Pada bagian **Environment Variables** proyek Vercel, tambahkan seluruh key berikut untuk target *Production*:
+- `DATABASE_URL`: Connection string PostgreSQL Neon pooled.
+- `DATABASE_URL_TEST`: Connection string database test Neon.
+- `BETTER_AUTH_SECRET`: String acak 32 karakter (dibuat via `openssl rand -hex 32`).
+- `BETTER_AUTH_URL`: URL produksi (mis. `https://simop-dpmptsp.vercel.app`).
+- `NEXT_PUBLIC_APP_URL`: URL produksi (mis. `https://simop-dpmptsp.vercel.app`).
+- `VERCEL_PROJECT_PRODUCTION_URL`: Domain produksi tanpa protokol (mis. `simop-dpmptsp.vercel.app`).
+- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`.
+- `SEED_ADMIN_PASSWORD`: Kata sandi kuat untuk akun administrator pertama.
+- `SEED_PEGAWAI_PASSWORD`: Kata sandi awal untuk akun pegawai bawaan seeder.
+- `E2E_ADMIN_USERNAME`: `admin`.
+- `E2E_ADMIN_PASSWORD`: Sesuai `SEED_ADMIN_PASSWORD`.
+- `NODE_ENV`: `production`.
+
+### Langkah 5: Eksekusi Migrasi & Deploy
+1. Klik tombol **Deploy** di Vercel.
+2. Setelah deployment selesai, jalankan migrasi Drizzle dari CLI lokal Anda ke database produksi:
+   ```bash
+   DATABASE_URL="<DATABASE_URL_PRODUKSI>" pnpm db:migrate
+   ```
+3. Lakukan inisialisasi akun awal dengan seeder produksi:
+   ```bash
+   DATABASE_URL="<DATABASE_URL_PRODUKSI>" pnpm db:seed --force-production
+   ```
+
+---
+
+## ✅ Checklist Verifikasi Pascadeploy (Operational Verification)
+
+Setelah proses deployment selesai, lakukan pemeriksaan operasional berikut:
+
+- [ ] **1. Halaman Autentikasi (`/login`)**:
+  - Buka URL produksi di browser. Pastikan halaman login termuat bersih tanpa error CSP atau font gagal render.
+  - Verifikasi bahwa teks peringatan *"Pendaftaran publik dinonaktifkan. Akun hanya dapat dibuat oleh administrator dinas."* tampil di bawah form.
+- [ ] **2. Login Administrator**:
+  - Masuk dengan username `admin` dan kata sandi yang dikonfigurasikan di `SEED_ADMIN_PASSWORD`.
+  - Verifikasi pengalihan sukses ke `/dashboard` (Pusat Kendali Operasional).
+- [ ] **3. Pengecekan Dashboard & StatCards**:
+  - Pastikan StatCard (Pegawai Aktif, Penugasan Hari Ini, Tiket Menunggu, PBG Jatuh Tempo) menampilkan angka yang benar.
+  - Periksa DonutChart distribusi penugasan hari ini menampilkan segmentasi lokasi: Kantor Dinas, Loket Pelayanan, Layanan Kecamatan, dan Lainnya/Lapangan.
+- [ ] **4. Manajemen Aparatur Pegawai (`/admin/pegawai`)**:
+  - Buka tabel pegawai, pastikan pegawai bawaan seeder tampil.
+  - Buat 1 akun pegawai baru via tombol "Tambah Pegawai", lalu uji aksi "Reset Sandi" dan "Nonaktifkan Akun".
+- [ ] **5. Penjadwalan & Verifikasi Laporan (`/admin/jadwal`)**:
+  - Buat jadwal dinas baru untuk seorang pegawai dengan rentang 2 hari.
+  - Login sebagai pegawai di jendela Incognito, buka `/pegawai/jadwal`.
+  - Klik "Kirim Laporan", unggah foto bukti laporan dinas (JPG/PNG $\le$ 5 MB).
+  - Pastikan presigned upload PUT langsung ke R2 berjalan sukses tanpa penolakan CORS/CSP.
+  - Kembali ke sesi admin di `/admin/verifikasi`, klik "Tinjau Laporan", verifikasi pratinjau foto via signed GET URL berumur 5 menit, lalu klik "Setujui Laporan (ACC)".
+
+### 🔍 Prosedur Verifikasi Manual Upload R2 Bebas Pelanggaran CSP
+Untuk memastikan pengunggahan bukti laporan ke Cloudflare R2 berjalan lancar tanpa terblokir oleh Content Security Policy (`connect-src`):
+1. Buka browser Developer Tools (F12) > tab **Console** dan tab **Network**.
+2. Masuk sebagai pegawai (`/login`), navigasi ke menu **Tugas Saya** (`/pegawai/jadwal`).
+3. Pada salah satu penugasan berstatus `BELUM_DIKERJAKAN`, klik **Kirim Laporan**.
+4. Pilih berkas foto (JPG/PNG $\le$ 5 MB) dan klik unggah/kirim.
+5. Periksa tab **Network**:
+   - Request pertama: `POST /api/uploads/sign` (berstatus 200, mengembalikan URL PUT presigned Cloudflare R2).
+   - Request kedua: `PUT https://<bucket-name>.<account-id>.r2.cloudflarestorage.com/jadwal/...` (berstatus 200).
+6. Periksa tab **Console**:
+   - Pastikan **TIDAK ADA** pesan merah pelanggaran CSP seperti `Refused to connect to 'https://...r2.cloudflarestorage.com' because it violates the following Content Security Policy directive: "connect-src..."`.
+   - Host presisi R2 yang dikonfigurasikan di `next.config.ts` (`${R2_BUCKET_NAME}.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com` dan `${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`) menjamin browser mengizinkan transmisi upload langsung.
+- [ ] **6. Inventaris ATK & Tiket Layanan (`/admin/inventaris` & `/pegawai/tiket`)**:
+  - Sebagai pegawai, ajukan tiket permintaan barang (misal 2 rim Kertas HVS).
+  - Sebagai admin di `/admin/inventaris`, setujui (ACC) tiket tersebut.
+  - Pastikan stok barang terpotong secara atomik dan mutasi tercatat pada riwayat `stok_log`.
+- [ ] **7. Monitoring Retribusi PBG (`/admin/pbg`)**:
+  - Tambah ketetapan retribusi PBG baru dengan tanggal jatuh tempo H-2.
+  - Verifikasi tagihan tersebut memicu penambahan hitungan pada AlertCard dashboard "PBG Jatuh Tempo $\le$ 3 Hari".
+- [ ] **8. Pencarian Cepat Global (`CommandMenu` / Ctrl+K)**:
+  - Tekan `Ctrl+K` atau `Cmd+K` di dashboard.
+  - Lakukan pencarian nama pegawai, nama barang, atau nomor SKRD.
+- [ ] **9. Keamanan Akun & Mandiri (`/pegawai/profil`)**:
+  - Sebagai pegawai, buka menu profil di `/pegawai/profil`.
+  - Ganti kata sandi. Pastikan perubahan berhasil dan sesi aktif di perangkat lain otomatis dicabut.
+
+---
+
+## 🛡️ Kebijakan Keamanan & Header HTTP
+Aplikasi dikonfigurasi dengan header keamanan HTTP ketat pada `next.config.ts`:
+- **Content-Security-Policy (CSP)**: Membatasi koneksi hanya ke origin aplikasi, Font Google/Fontshare, dan endpoint Cloudflare R2 presisi dari environment (`https://${R2_BUCKET_NAME}.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com` dan `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`).
+- **X-Frame-Options**: `DENY` (mencegah serangan clickjacking).
+- **X-Content-Type-Options**: `nosniff` (mencegah MIME-sniffing).
+- **Referrer-Policy**: `strict-origin-when-cross-origin`.
+- **Permissions-Policy**: Menonaktifkan kamera, mikrofon, dan geolokasi (`camera=(), microphone=(), geolocation=()`).
+- **X-Robots-Tag**: `noindex, nofollow` (aplikasi web operasional internal pemerintahan, tidak diindeks mesin pencari publik).
+
+---
+
+## 📌 Status Fitur Khusus
+- **Fitur Otomatisasi WhatsApp & Cron Reminder PBG**: Sesuai instruksi Fase 4 & 5, rute pengiriman berkala `/api/cron/pbg-reminder` dan integrasi WhatsApp pihak ketiga **ditangguhkan sementara (SUSPENDED)**. Seluruh skema database (`pengaturan`, `notifikasi_log`) tetap disiapkan secara utuh dan siap diaktifkan kembali tanpa perlu perombakan arsitektur.
+- **Region Deployment**: Vercel dikonfigurasikan pada region `sin1` (Singapura) sesuai berkas `vercel.json` untuk latensi terendah ke basis data Neon dan pengguna di Karawang.

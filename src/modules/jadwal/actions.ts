@@ -50,8 +50,7 @@ export async function createJadwalRangeAction(input: CreateJadwalRangeInput) {
       id: item.id,
       judul: item.judul,
       deskripsi: item.deskripsi,
-      tanggalMulai: item.tanggalMulai,
-      tanggalSelesai: item.tanggalSelesai,
+      tanggal: item.tanggal,
       pegawaiId: item.pegawaiId,
       lokasiTipe: item.lokasiTipe,
       alamatLokasi: item.alamatLokasi,
@@ -80,6 +79,7 @@ export async function deleteJadwalAction(id: string) {
   const [existing] = await db
     .select({
       id: jadwal.id,
+      status: jadwal.status,
       buktiKey: jadwal.buktiKey,
       pdfKey: jadwal.pdfKey,
     })
@@ -91,15 +91,25 @@ export async function deleteJadwalAction(id: string) {
     throw new Error('Jadwal tugas tidak ditemukan.');
   }
 
-  // Hapus berkas R2 jika ada
-  if (existing.buktiKey) {
-    await deleteR2Object(existing.buktiKey);
-  }
-  if (existing.pdfKey) {
-    await deleteR2Object(existing.pdfKey);
+  // Aturan proteksi: Jadwal yang telah berstatus SELESAI tidak boleh dihapus
+  if (existing.status === 'SELESAI') {
+    throw new Error('Jadwal penugasan yang telah selesai diverifikasi tidak dapat dihapus.');
   }
 
+  // 1. Hapus baris database terlebih dahulu
   await db.delete(jadwal).where(eq(jadwal.id, id));
+
+  // 2. Hapus objek R2 setelahnya (tangani kegagalan dengan logging tanpa membatalkan aksi)
+  if (existing.buktiKey) {
+    deleteR2Object(existing.buktiKey).catch((err) => {
+      console.error(`Gagal menghapus berkas bukti R2 (${existing.buktiKey}):`, err);
+    });
+  }
+  if (existing.pdfKey) {
+    deleteR2Object(existing.pdfKey).catch((err) => {
+      console.error(`Gagal menghapus berkas PDF R2 (${existing.pdfKey}):`, err);
+    });
+  }
 
   revalidatePath('/admin/jadwal');
   revalidatePath('/admin/verifikasi');
@@ -169,7 +179,6 @@ export async function submitLaporanAction(input: SubmitLaporanInput) {
     .set({
       buktiKey: parsed.buktiKey,
       pdfKey: parsed.pdfKey || null,
-      laporanTeks: parsed.laporanTeks || null,
       status: 'MENUNGGU_VERIFIKASI',
       catatanVerifikator: null, // Reset catatan penolakan sebelumnya jika ada
       updatedAt: new Date(),

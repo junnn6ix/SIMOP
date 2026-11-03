@@ -37,9 +37,17 @@ export function resolveTrustedOrigins(customEnv?: {
   NEXT_PUBLIC_APP_URL?: string;
   VERCEL_PROJECT_PRODUCTION_URL?: string;
   SIMOP_PREVIEW_DOMAIN?: string;
+  NODE_ENV?: string;
+  VERCEL?: string;
 }): string[] {
   const currentEnv = customEnv || process.env;
-  const origins: string[] = ['http://localhost:3000'];
+  const isVercel = Boolean(currentEnv.VERCEL ?? process.env.VERCEL);
+  const isProd = (currentEnv.NODE_ENV ?? process.env.NODE_ENV) === 'production';
+
+  // Origins localhost hanya diizinkan di lingkungan lokal/development non-Vercel
+  const origins: string[] = (!isVercel && !isProd)
+    ? ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002']
+    : [];
 
   const appUrl = formatOriginUrl(currentEnv.NEXT_PUBLIC_APP_URL || env.NEXT_PUBLIC_APP_URL);
   if (appUrl) origins.push(appUrl);

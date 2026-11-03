@@ -13,7 +13,7 @@ describe('Jadwal Generator & Status Transitions', () => {
       tanggalMulai: new Date('2026-11-06T00:00:00.000Z'),
       tanggalSelesai: new Date('2026-11-09T00:00:00.000Z'),
       pegawaiIds: ['pegawai-1', 'pegawai-2'],
-      lokasiTipe: 'LUAR_KANTOR',
+      lokasiTipe: 'KECAMATAN',
       alamatLokasi: 'Kawasan KIIC Karawang',
       skipWeekends: true,
     });
@@ -21,13 +21,37 @@ describe('Jadwal Generator & Status Transitions', () => {
     // 2 hari kerja * 2 pegawai = 4 item
     expect(items.length).toBe(4);
     expect(items.every((i) => i.status === 'BELUM_DIKERJAKAN')).toBe(true);
-    expect(items.every((i) => i.lokasiTipe === 'LUAR_KANTOR')).toBe(true);
+    expect(items.every((i) => i.lokasiTipe === 'KECAMATAN')).toBe(true);
 
     // Pastikan tidak ada jadwal di hari Sabtu (6) atau Minggu (0)
     items.forEach((item) => {
-      const day = item.tanggalMulai.getDay();
+      const day = new Date(item.tanggal).getDay();
       expect(day).not.toBe(0);
       expect(day).not.toBe(6);
+    });
+  });
+
+  it('correctly handles date range crossing month boundaries and produces exact YYYY-MM-DD date strings', () => {
+    // 2026-10-30 (Jumat) s/d 2026-11-03 (Selasa)
+    // Hari: Jumat (30 Okt), Sabtu (31 Okt - libur), Minggu (1 Nov - libur), Senin (2 Nov), Selasa (3 Nov)
+    // Hari kerja: 30 Okt, 2 Nov, 3 Nov (3 hari kerja)
+    const items = generateJadwalRange({
+      judul: 'Monitoring Lapangan Lintas Bulan',
+      tanggalMulai: new Date('2026-10-30T00:00:00.000Z'),
+      tanggalSelesai: new Date('2026-11-03T00:00:00.000Z'),
+      pegawaiIds: ['pegawai-ptsp'],
+      lokasiTipe: 'LAINNYA',
+      skipWeekends: true,
+    });
+
+    expect(items.length).toBe(3);
+
+    const dates = items.map((i) => i.tanggal);
+    expect(dates).toEqual(['2026-10-30', '2026-11-02', '2026-11-03']);
+
+    // Pastikan format tanggal murni YYYY-MM-DD
+    dates.forEach((d) => {
+      expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
   });
 
@@ -37,12 +61,18 @@ describe('Jadwal Generator & Status Transitions', () => {
       tanggalMulai: new Date('2026-11-06T00:00:00.000Z'),
       tanggalSelesai: new Date('2026-11-09T00:00:00.000Z'),
       pegawaiIds: ['pegawai-1'],
-      lokasiTipe: 'DALAM_KANTOR',
+      lokasiTipe: 'KANTOR',
       skipWeekends: false,
     });
 
     // 4 hari total * 1 pegawai = 4 item
     expect(items.length).toBe(4);
+    expect(items.map((i) => i.tanggal)).toEqual([
+      '2026-11-06',
+      '2026-11-07',
+      '2026-11-08',
+      '2026-11-09',
+    ]);
   });
 
   it('rejects range greater than 31 days', () => {
@@ -52,7 +82,7 @@ describe('Jadwal Generator & Status Transitions', () => {
         tanggalMulai: new Date('2026-10-01T00:00:00.000Z'),
         tanggalSelesai: new Date('2026-11-15T00:00:00.000Z'), // > 40 hari
         pegawaiIds: ['pegawai-1'],
-        lokasiTipe: 'DALAM_KANTOR',
+        lokasiTipe: 'LOKET',
       })
     ).toThrow('Rentang pembuatan jadwal maksimal adalah 31 hari.');
   });
@@ -101,7 +131,6 @@ describe('Jadwal Generator & Status Transitions', () => {
         currentStatus: 'BELUM_DIKERJAKAN',
         targetStatus: 'SELESAI',
       })
-    ).toThrow('Transisi status tidak valid dari BELUM_DIKERJAKAN ke SELESAI.');
+    ).toThrow('Transisi status jadwal dari BELUM_DIKERJAKAN ke SELESAI tidak diizinkan.');
   });
 });
-

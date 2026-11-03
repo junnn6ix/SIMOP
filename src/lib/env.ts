@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL wajib diisi'),
+  DATABASE_URL_TEST: z.string().optional().default(''),
   BETTER_AUTH_SECRET: z.string().min(1, 'BETTER_AUTH_SECRET wajib diisi'),
   BETTER_AUTH_URL: z.string().url().default('http://localhost:3000'),
   NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
@@ -34,6 +35,7 @@ function validateEnv() {
     if (process.env.NODE_ENV === 'test' || process.env.SKIP_ENV_VALIDATION === '1') {
       return {
         DATABASE_URL: process.env.DATABASE_URL || 'postgresql://mock:mock@localhost:5432/mock',
+        DATABASE_URL_TEST: process.env.DATABASE_URL_TEST || '',
         BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'test-secret-at-least-32-characters-long',
         BETTER_AUTH_URL: 'http://localhost:3000',
         NEXT_PUBLIC_APP_URL: 'http://localhost:3000',

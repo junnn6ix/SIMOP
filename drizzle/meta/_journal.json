@@ -8,6 +8,34 @@
       "when": 1793688940028,
       "tag": "0000_bored_the_hunter",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793692082949,
+      "tag": "0001_lively_wonder_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793694808345,
+      "tag": "0002_canonical_pbg_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793699422060,
+      "tag": "0003_plain_blink",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793703610612,
+      "tag": "0004_canonical_jadwal_tanggal",
+      "breakpoints": true
     }
   ]
 }

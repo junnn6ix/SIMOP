@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { hashPassword } from 'better-auth/crypto';
 import { requireRole } from '@/lib/session';
 import { db } from '@/db';
-import { user, account } from '@/db/schema/auth';
+import { user, account, session } from '@/db/schema/auth';
 import { auth, getSyntheticEmail } from '@/lib/auth';
 import { deactivateUser, activateUser } from '@/lib/user-management';
 import {
@@ -89,13 +89,16 @@ export async function resetPegawaiPasswordAction(input: ResetPasswordInput) {
   const hashedPassword = await hashPassword(parsed.newPassword);
 
   // Update password pada akun credential pengguna
-  const result = await db
+  await db
     .update(account)
     .set({
       password: hashedPassword,
       updatedAt: new Date(),
     })
     .where(eq(account.userId, parsed.userId));
+
+  // Cabut seluruh sesi aktif pegawai tersebut seketika demi keamanan
+  await db.delete(session).where(eq(session.userId, parsed.userId));
 
   revalidatePath('/admin/pegawai');
   return { success: true, message: 'Kata sandi berhasil direset.' };

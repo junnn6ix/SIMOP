@@ -7,7 +7,7 @@ import { createPresignedPreviewUrl } from '@/lib/storage';
 
 export async function GET(req: NextRequest) {
   try {
-    const { user } = await requireAuth();
+    const { user } = await requireAuth({ checkDbActive: true });
 
     const { searchParams } = new URL(req.url);
     const key = searchParams.get('key');
@@ -31,7 +31,12 @@ export async function GET(req: NextRequest) {
 
     // Ambil data jadwal untuk otorisasi akses
     const [targetJadwal] = await db
-      .select()
+      .select({
+        id: jadwal.id,
+        pegawaiId: jadwal.pegawaiId,
+        buktiKey: jadwal.buktiKey,
+        pdfKey: jadwal.pdfKey,
+      })
       .from(jadwal)
       .where(eq(jadwal.id, jadwalId))
       .limit(1);
@@ -51,6 +56,15 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Keamanan ketat: Hanya kunci yang benar-benar tercatat pada jadwal (buktiKey / pdfKey)
+    // yang diizinkan untuk dibuatkan signed preview URL
+    if (key !== targetJadwal.buktiKey && key !== targetJadwal.pdfKey) {
+      return NextResponse.json(
+        { error: 'Kunci berkas tidak tercatat resmi pada jadwal tugas ini.' },
+        { status: 403 }
+      );
+    }
+
     const previewUrl = await createPresignedPreviewUrl(key, 300);
 
     return NextResponse.json({ previewUrl });
@@ -61,4 +75,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-

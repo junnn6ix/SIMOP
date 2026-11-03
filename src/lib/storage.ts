@@ -114,19 +114,19 @@ export async function verifyR2Object(params: {
   objectKey: string;
   jadwalId: string;
   allowedMimes: string[];
+  s3Client?: S3Client;
 }): Promise<{ contentLength: number; contentType: string }> {
-  const { objectKey, jadwalId, allowedMimes } = params;
+  const { objectKey, jadwalId, allowedMimes, s3Client } = params;
   const expectedPrefix = `jadwal/${jadwalId}/`;
 
   if (!objectKey.startsWith(expectedPrefix)) {
     throw new Error('Kunci objek tidak sesuai dengan identitas jadwal tugas.');
   }
 
-  // Jika di lingkungan test dan kredensial R2 dummy, simulasikan verifikasi berhasil
+  // Jika tidak ada s3Client kustom dan kredensial belum dikonfigurasi di lingkungan dev/test
   if (
-    process.env.NODE_ENV === 'test' ||
-    !env.R2_ACCOUNT_ID ||
-    !env.R2_ACCESS_KEY_ID
+    !s3Client &&
+    (process.env.NODE_ENV === 'test' || !env.R2_ACCOUNT_ID || !env.R2_ACCESS_KEY_ID)
   ) {
     return {
       contentLength: 1024 * 1024,
@@ -134,12 +134,12 @@ export async function verifyR2Object(params: {
     };
   }
 
-  const client = getR2Client();
+  const client = s3Client || getR2Client();
 
   try {
     const head = await client.send(
       new HeadObjectCommand({
-        Bucket: env.R2_BUCKET_NAME,
+        Bucket: env.R2_BUCKET_NAME || 'test-bucket',
         Key: objectKey,
       })
     );
@@ -149,12 +149,12 @@ export async function verifyR2Object(params: {
 
     if (size > MAX_UPLOAD_SIZE) {
       // Hapus objek yang melebihi kuota 5 MB
-      await deleteR2Object(objectKey);
+      await deleteR2Object(objectKey, client);
       throw new Error('Ukuran berkas melebihi batas maksimal 5 MB.');
     }
 
     if (!allowedMimes.includes(type.toLowerCase())) {
-      await deleteR2Object(objectKey);
+      await deleteR2Object(objectKey, client);
       throw new Error(`Format berkas (${type}) tidak diizinkan.`);
     }
 
@@ -173,22 +173,21 @@ export async function verifyR2Object(params: {
 /**
  * Menghapus objek berkas dari Cloudflare R2
  */
-export async function deleteR2Object(objectKey?: string | null): Promise<void> {
+export async function deleteR2Object(objectKey?: string | null, s3Client?: S3Client): Promise<void> {
   if (!objectKey) return;
 
   if (
-    process.env.NODE_ENV === 'test' ||
-    !env.R2_ACCOUNT_ID ||
-    !env.R2_ACCESS_KEY_ID
+    !s3Client &&
+    (process.env.NODE_ENV === 'test' || !env.R2_ACCOUNT_ID || !env.R2_ACCESS_KEY_ID)
   ) {
     return;
   }
 
   try {
-    const client = getR2Client();
+    const client = s3Client || getR2Client();
     await client.send(
       new DeleteObjectCommand({
-        Bucket: env.R2_BUCKET_NAME,
+        Bucket: env.R2_BUCKET_NAME || 'test-bucket',
         Key: objectKey,
       })
     );

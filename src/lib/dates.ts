@@ -195,5 +195,33 @@ export function isOverdue(targetDate: Date | string | number): boolean {
   return target.getTime() < Date.now();
 }
 
+/**
+ * Menghitung rentang kalender satu minggu (Senin s.d. Minggu) dalam zona waktu WIB (+07:00).
+ */
+export function getWibCurrentWeekRange(referenceDate?: Date | string) {
+  const d = referenceDate ? toDate(referenceDate) : new Date();
+  const dateStr = toWibDateString(d);
+  const parts = dateStr.split('-').map(Number);
+  const calDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+  const day = calDate.getUTCDay(); // 0 = Minggu, 1 = Senin, ..., 6 = Sabtu
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+
+  const monday = new Date(calDate);
+  monday.setUTCDate(calDate.getUTCDate() + diffToMonday);
+
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+
+  const mondayStr = monday.toISOString().slice(0, 10);
+  const sundayStr = sunday.toISOString().slice(0, 10);
+
+  return {
+    mondayDateStr: mondayStr,
+    sundayDateStr: sundayStr,
+    startOfWeek: new Date(`${mondayStr}T00:00:00+07:00`),
+    endOfWeek: new Date(`${sundayStr}T23:59:59.999+07:00`),
+  };
+}
+
 export { MONTH_NAMES_ID, DAY_NAMES_ID };
 

@@ -1,3 +1,13 @@
+/**
+ * Tests for Better Auth Security Policies & Role Enforcement
+ * 
+ * BASIS DATA YANG DIGUNAKAN:
+ * Menggunakan in-memory adapter Better Auth (`memoryAdapter(memoryDb)`) yang diinisialisasi
+ * secara terisolasi per pengujian via beforeEach.
+ * Pengujian ini menguji kebijakan keamanan Better Auth (penolakan sign-up publik, pencegahan
+ * eskalasi role, pemblokiran user nonaktif, dan pencabutan sesi) langsung menggunakan konfigurasi
+ * produksi (createAuthOptions dari src/lib/auth.ts) tanpa mengotori atau memutasi database Neon dev/test.
+ */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { betterAuth } from 'better-auth';
 import { memoryAdapter } from 'better-auth/adapters/memory';

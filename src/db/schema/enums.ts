@@ -10,8 +10,10 @@ export const bidangEnum = pgEnum('bidang', [
 ]);
 
 export const lokasiTipeEnum = pgEnum('lokasi_tipe', [
-  'DALAM_KANTOR',
-  'LUAR_KANTOR',
+  'LOKET',
+  'KECAMATAN',
+  'KANTOR',
+  'LAINNYA',
 ]);
 
 export const jadwalStatusEnum = pgEnum('jadwal_status', [
@@ -24,14 +26,14 @@ export const jadwalStatusEnum = pgEnum('jadwal_status', [
 export const barangKategoriEnum = pgEnum('barang_kategori', ['ATK', 'ASET']);
 
 export const tiketJenisEnum = pgEnum('tiket_jenis', [
-  'PERMINTAAN_ATK',
-  'PEMINJAMAN_ASET',
-  'PERBAIKAN_ASET',
+  'PERMINTAAN_BARANG',
+  'LAPOR_KERUSAKAN',
 ]);
 
 export const tiketStatusEnum = pgEnum('tiket_status', [
   'MENUNGGU',
   'ACC',
+  'MAINTENANCE',
   'DITOLAK',
   'SELESAI',
 ]);
@@ -43,9 +45,8 @@ export const stokTipeEnum = pgEnum('stok_tipe', [
 ]);
 
 export const pbgStatusEnum = pgEnum('pbg_status', [
-  'BELUM_LUNAS',
+  'BELUM_BAYAR',
   'LUNAS',
-  'KADALUARSA',
 ]);
 
 export const notifikasiStatusEnum = pgEnum('notifikasi_status', [

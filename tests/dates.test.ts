@@ -8,6 +8,7 @@ import {
   formatRelative,
   isDueSoon,
   isOverdue,
+  getWibCurrentWeekRange,
   TIMEZONE,
   LOCALE,
 } from '@/lib/dates';
@@ -58,5 +59,24 @@ describe('dates utility', () => {
     expect(isOverdue(pastH1)).toBe(true);
     expect(isOverdue(futureH2)).toBe(false);
   });
-});
 
+  it('generates exact Monday-to-Sunday week range in WIB', () => {
+    // 2026-11-04 is Wednesday
+    const wednesday = new Date('2026-11-04T12:00:00+07:00');
+    const week = getWibCurrentWeekRange(wednesday);
+    expect(week.mondayDateStr).toBe('2026-11-02');
+    expect(week.sundayDateStr).toBe('2026-11-08');
+
+    // 2026-11-08 is Sunday
+    const sunday = new Date('2026-11-08T20:00:00+07:00');
+    const weekSun = getWibCurrentWeekRange(sunday);
+    expect(weekSun.mondayDateStr).toBe('2026-11-02');
+    expect(weekSun.sundayDateStr).toBe('2026-11-08');
+
+    // 2026-11-02 is Monday
+    const monday = new Date('2026-11-02T08:00:00+07:00');
+    const weekMon = getWibCurrentWeekRange(monday);
+    expect(weekMon.mondayDateStr).toBe('2026-11-02');
+    expect(weekMon.sundayDateStr).toBe('2026-11-08');
+  });
+});

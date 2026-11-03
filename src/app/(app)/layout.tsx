@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { requireAuth } from '@/lib/session';
+import { redirect } from 'next/navigation';
+import { getServerSession } from '@/lib/session';
+import { db } from '@/db';
+import { user as userTable } from '@/db/schema/auth';
+import { eq } from 'drizzle-orm';
 import { AppShell } from '@/components/layout/AppShell';
 
 export default async function AppLayout({
@@ -7,19 +11,32 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = await requireAuth();
+  const sessionData = await getServerSession();
+
+  if (!sessionData || !sessionData.session || !sessionData.user) {
+    redirect('/login');
+  }
+
+  const [dbUser] = await db
+    .select()
+    .from(userTable)
+    .where(eq(userTable.id, sessionData.user.id))
+    .limit(1);
+
+  if (!dbUser || !dbUser.aktif || dbUser.banned) {
+    redirect('/login');
+  }
 
   return (
     <AppShell
       user={{
-        name: user.name,
-        username: user.username || '',
-        role: user.role,
-        bidang: user.bidang,
+        name: dbUser.name,
+        username: dbUser.username || '',
+        role: dbUser.role,
+        bidang: dbUser.bidang,
       }}
     >
       {children}
     </AppShell>
   );
 }
-

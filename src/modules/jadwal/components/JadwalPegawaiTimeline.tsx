@@ -14,12 +14,10 @@ export interface JadwalPegawaiItem {
   id: string;
   judul: string;
   deskripsi: string | null;
-  tanggalMulai: Date;
-  tanggalSelesai: Date;
-  lokasiTipe: 'DALAM_KANTOR' | 'LUAR_KANTOR';
+  tanggal: string;
+  lokasiTipe: 'LOKET' | 'KECAMATAN' | 'KANTOR' | 'LAINNYA';
   alamatLokasi: string | null;
   status: 'BELUM_DIKERJAKAN' | 'MENUNGGU_VERIFIKASI' | 'SELESAI' | 'DITOLAK';
-  laporanTeks: string | null;
   catatanVerifikator: string | null;
   buktiKey: string | null;
   pdfKey: string | null;
@@ -135,21 +133,24 @@ export function JadwalPegawaiTimeline({ initialItems }: JadwalPegawaiTimelinePro
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" />
-                        <span>{formatDateShort(item.tanggalMulai)}</span>
+                        <span>{formatDateShort(item.tanggal)}</span>
                       </div>
 
                       <div className="flex items-center gap-1.5">
-                        {item.lokasiTipe === 'DALAM_KANTOR' ? (
-                          <>
-                            <Building className="h-3.5 w-3.5" />
-                            <span>Dalam Kantor</span>
-                          </>
+                        {item.lokasiTipe === 'LOKET' || item.lokasiTipe === 'KANTOR' ? (
+                          <Building className="h-3.5 w-3.5" />
                         ) : (
-                          <>
-                            <MapPin className="h-3.5 w-3.5 text-primary" />
-                            <span>Luar Kantor</span>
-                          </>
+                          <MapPin className="h-3.5 w-3.5 text-primary" />
                         )}
+                        <span>
+                          {item.lokasiTipe === 'LOKET'
+                            ? 'Loket Pelayanan'
+                            : item.lokasiTipe === 'KECAMATAN'
+                            ? 'Layanan Kecamatan'
+                            : item.lokasiTipe === 'KANTOR'
+                            ? 'Kantor Dinas'
+                            : 'Lainnya / Lapangan'}
+                        </span>
                         {item.alamatLokasi && <span>• {item.alamatLokasi}</span>}
                       </div>
                     </div>
@@ -220,17 +221,6 @@ export function JadwalPegawaiTimeline({ initialItems }: JadwalPegawaiTimelinePro
           </DialogHeader>
 
           <div className="space-y-4 pt-2">
-            {previewItem?.laporanTeks && (
-              <div className="p-3 rounded-panel bg-muted/50 border border-border">
-                <div className="text-xs font-semibold text-text-primary mb-1">
-                  Catatan Pelaksanaan Anda
-                </div>
-                <p className="text-xs text-text-secondary whitespace-pre-wrap">
-                  {previewItem.laporanTeks}
-                </p>
-              </div>
-            )}
-
             {isLoadingPreview ? (
               <div className="p-8 text-center text-sm text-text-secondary">
                 Memuat berkas bukti...

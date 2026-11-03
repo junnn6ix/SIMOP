@@ -18,11 +18,22 @@ const signSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const { user } = await requireRole(['PEGAWAI', 'ADMIN']);
+    // 1. Verifikasi aktif ke database (bukan hanya cache cookie)
+    const { user } = await requireRole(['PEGAWAI', 'ADMIN'], { checkDbActive: true });
 
-    const body = await req.json();
+    // 2. Baca body dengan perlindungan parsing JSON
+    let body: any;
+    try {
+      body = await req.json();
+    } catch (parseErr) {
+      return NextResponse.json(
+        { error: 'Format JSON pada request tidak valid.' },
+        { status: 400 }
+      );
+    }
+
+    // 3. Validasi skema input
     const parsed = signSchema.safeParse(body);
-
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.issues[0]?.message || 'Input tidak valid' },
@@ -32,9 +43,13 @@ export async function POST(req: NextRequest) {
 
     const { jadwalId, slot, contentType } = parsed.data;
 
-    // Verifikasi kepemilikan jadwal dan status
+    // 4. Verifikasi kepemilikan jadwal dan status penugasan
     const [targetJadwal] = await db
-      .select()
+      .select({
+        id: jadwal.id,
+        pegawaiId: jadwal.pegawaiId,
+        status: jadwal.status,
+      })
       .from(jadwal)
       .where(eq(jadwal.id, jadwalId))
       .limit(1);
@@ -71,10 +86,15 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result);
   } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: err.issues[0]?.message || 'Validasi skema gagal.' },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: err.message || 'Terjadi kesalahan saat memproses izin unggah.' },
       { status: 500 }
     );
   }
 }
-

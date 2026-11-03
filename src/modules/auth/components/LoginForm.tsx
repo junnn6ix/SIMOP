@@ -49,7 +49,7 @@ export function LoginForm() {
       }
 
       toast.success('Berhasil masuk ke SIMOP DPMPTSP.');
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     } catch {
       setErrorMessage('Terjadi kendala saat menghubungi server. Silakan coba kembali.');

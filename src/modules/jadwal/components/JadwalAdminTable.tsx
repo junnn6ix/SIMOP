@@ -15,20 +15,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { formatDateShort } from '@/lib/dates';
 import { deleteJadwalAction } from '../actions';
 
+export type LokasiTipe = 'LOKET' | 'KECAMATAN' | 'KANTOR' | 'LAINNYA';
+
 export interface JadwalAdminItem {
   id: string;
   judul: string;
   deskripsi: string | null;
-  tanggalMulai: Date;
-  tanggalSelesai: Date;
+  tanggal: string;
   pegawaiId: string;
   pegawaiName: string;
   pegawaiUsername: string | null;
   pegawaiBidang: string;
-  lokasiTipe: 'DALAM_KANTOR' | 'LUAR_KANTOR';
+  lokasiTipe: LokasiTipe;
   alamatLokasi: string | null;
   status: 'BELUM_DIKERJAKAN' | 'MENUNGGU_VERIFIKASI' | 'SELESAI' | 'DITOLAK';
-  laporanTeks: string | null;
   catatanVerifikator: string | null;
   buktiKey: string | null;
   pdfKey: string | null;
@@ -123,7 +123,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
         <div>
           <div className="font-semibold text-text-primary">{row.original.judul}</div>
           <div className="text-xs text-text-secondary mt-0.5">
-            {formatDateShort(row.original.tanggalMulai)}
+            {formatDateShort(row.original.tanggal)}
           </div>
           {row.original.deskripsi && (
             <div className="text-xs text-text-secondary/80 mt-1 line-clamp-1">
@@ -155,28 +155,34 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
     {
       accessorKey: 'lokasiTipe',
       header: 'Lokasi Pelaksanaan',
-      cell: ({ row }) => (
-        <div className="text-xs">
-          <div className="flex items-center gap-1.5 font-medium text-text-primary">
-            {row.original.lokasiTipe === 'DALAM_KANTOR' ? (
-              <>
+      cell: ({ row }) => {
+        const tipe = row.original.lokasiTipe;
+        const labels: Record<LokasiTipe, { label: string; isOffice: boolean }> = {
+          LOKET: { label: 'Loket Pelayanan', isOffice: true },
+          KANTOR: { label: 'Kantor Dinas', isOffice: true },
+          KECAMATAN: { label: 'Layanan Kecamatan', isOffice: false },
+          LAINNYA: { label: 'Lainnya / Lapangan', isOffice: false },
+        };
+        const config = labels[tipe] || { label: tipe, isOffice: true };
+
+        return (
+          <div className="text-xs">
+            <div className="flex items-center gap-1.5 font-medium text-text-primary">
+              {config.isOffice ? (
                 <Building className="h-3.5 w-3.5 text-text-secondary" />
-                <span>Dalam Kantor</span>
-              </>
-            ) : (
-              <>
+              ) : (
                 <MapPin className="h-3.5 w-3.5 text-primary" />
-                <span>Luar Kantor</span>
-              </>
+              )}
+              <span>{config.label}</span>
+            </div>
+            {row.original.alamatLokasi && (
+              <div className="text-text-secondary mt-0.5 line-clamp-1">
+                {row.original.alamatLokasi}
+              </div>
             )}
           </div>
-          {row.original.alamatLokasi && (
-            <div className="text-text-secondary mt-0.5 line-clamp-1">
-              {row.original.alamatLokasi}
-            </div>
-          )}
-        </div>
-      ),
+        );
+      },
     },
     {
       accessorKey: 'status',
@@ -249,8 +255,10 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
               placeholder="Tipe Lokasi"
               allOptionLabel="Semua Lokasi"
               options={[
-                { label: 'Dalam Kantor', value: 'DALAM_KANTOR' },
-                { label: 'Luar Kantor', value: 'LUAR_KANTOR' },
+                { label: 'Loket Pelayanan', value: 'LOKET' },
+                { label: 'Layanan Kecamatan', value: 'KECAMATAN' },
+                { label: 'Kantor Dinas', value: 'KANTOR' },
+                { label: 'Lainnya / Lapangan', value: 'LAINNYA' },
               ]}
             />
           </>
@@ -292,17 +300,6 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
                 {previewItem?.pegawaiName} (@{previewItem?.pegawaiUsername})
               </div>
             </div>
-
-            {previewItem?.laporanTeks && (
-              <div className="p-3 rounded-panel bg-muted/50 border border-border">
-                <div className="text-xs font-semibold text-text-primary mb-1">
-                  Catatan / Ringkasan Pelaksanaan
-                </div>
-                <p className="text-xs text-text-secondary whitespace-pre-wrap">
-                  {previewItem.laporanTeks}
-                </p>
-              </div>
-            )}
 
             {isLoadingPreview ? (
               <div className="p-8 text-center text-sm text-text-secondary">
