@@ -7,6 +7,8 @@ const ALLOWED_FILES = [
 ];
 
 const HEX_COLOR_REGEX = /#[0-9a-fA-F]{3,8}\b/g;
+const TAILWIND_NON_ADAPTIVE_REGEX = /\b(bg|text|border|ring|stroke|fill)-(white|black|(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3})\b/g;
+const LITERAL_COLOR_FN_REGEX = /\b(rgba?|hsla?)\([^)]+\)/g;
 
 let violationsCount = 0;
 
@@ -25,16 +27,38 @@ function walkDir(dir) {
 
       const content = fs.readFileSync(fullPath, 'utf8');
       const lines = content.split('\n');
+      const isDotGridCanvas = fullPath.endsWith('DotGrid.tsx');
+
       lines.forEach((line, index) => {
-        // Ignore comments with explicit allow if needed, or check all hex
-        const matches = line.match(HEX_COLOR_REGEX);
-        if (matches) {
-          console.error(
-            `[check:tokens] Hardcoded hex color found in ${path.relative(process.cwd(), fullPath)}:${index + 1}: ${matches.join(', ')}`
-          );
-          violationsCount++;
-        }
-      });
+          // 1. Check hardcoded hex colors
+          const hexMatches = line.match(HEX_COLOR_REGEX);
+          if (hexMatches) {
+            console.error(
+                `[check:tokens] Hardcoded hex color found in ${path.relative(process.cwd(), fullPath)}:${index + 1}: ${hexMatches.join(', ')}`
+            );
+            violationsCount++;
+          }
+
+          // 2. Check non-adaptive Tailwind default palette classes
+          const twMatches = line.match(TAILWIND_NON_ADAPTIVE_REGEX);
+          if (twMatches) {
+            console.error(
+              `[check:tokens] Non-adaptive Tailwind color found in ${path.relative(process.cwd(), fullPath)}:${index + 1}: ${twMatches.join(', ')}`
+            );
+            violationsCount++;
+          }
+
+          // 3. Check literal rgb/rgba/hsl outside canvas DotGrid
+          if (!isDotGridCanvas) {
+            const fnMatches = line.match(LITERAL_COLOR_FN_REGEX);
+            if (fnMatches) {
+              console.error(
+                `[check:tokens] Literal color function found in ${path.relative(process.cwd(), fullPath)}:${index + 1}: ${fnMatches.join(', ')}`
+              );
+              violationsCount++;
+            }
+          }
+        });
     }
   }
 }

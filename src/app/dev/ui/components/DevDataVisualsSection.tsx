@@ -41,7 +41,7 @@ export function DevDataVisualsSection() {
                 value={75}
                 size={130}
                 sublabel="Selesai (15/20)"
-                color="var(--color-primary)"
+                color="var(--color-chart-1)"
               />
               <ProgressRing
                 value={100}
@@ -60,10 +60,10 @@ export function DevDataVisualsSection() {
               size={130}
               centerLabel="Petugas"
               segments={[
-                { label: 'Loket Pelayanan', value: 12, color: 'var(--color-primary)' },
-                { label: 'Kecamatan', value: 8, color: 'var(--color-warning)' },
-                { label: 'Kantor Dinas', value: 16, color: 'var(--color-success)' },
-                { label: 'Lainnya', value: 6, color: 'var(--color-text-secondary)' },
+                { label: 'Loket Pelayanan', value: 12, color: 'var(--color-chart-1)' },
+                { label: 'Kecamatan', value: 8, color: 'var(--color-chart-2)' },
+                { label: 'Kantor Dinas', value: 16, color: 'var(--color-chart-3)' },
+                { label: 'Lainnya', value: 6, color: 'var(--color-chart-4)' },
               ]}
             />
           </Card>

@@ -73,4 +73,58 @@ test.describe('SIMOP DPMPTSP - End-to-End Smoke Tests', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
     await expect(page.getByText('Dashboard Tugas Pegawai')).toBeVisible({ timeout: 15000 });
   });
+
+  test('theme toggle switches html class and persists across reload', async ({ page }) => {
+    const adminUsername = process.env.E2E_ADMIN_USERNAME || process.env.SEED_ADMIN_USERNAME;
+    const adminPassword = process.env.E2E_ADMIN_PASSWORD || process.env.SEED_ADMIN_PASSWORD;
+
+    if (!adminUsername || !adminPassword) {
+      throw new Error(
+        'Kredensial E2E_ADMIN_USERNAME dan E2E_ADMIN_PASSWORD harus didefinisikan di environment.'
+      );
+    }
+
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
+    await page.goto('/login');
+    await page.fill('input[placeholder="Masukkan username Anda..."]', adminUsername);
+    await page.fill('input[placeholder="Masukkan kata sandi..."]', adminPassword);
+    await page.click('button:has-text("Masuk ke Sistem")');
+
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
+
+    // Cari tombol ThemeToggle berdasarkan aria-label
+    const themeBtn = page.getByRole('button', { name: 'Pilih tema tampilan' });
+    await expect(themeBtn).toBeVisible({ timeout: 10000 });
+    await themeBtn.click();
+
+    // Pilih opsi "Gelap"
+    await page.getByRole('menuitem', { name: 'Gelap' }).click();
+
+    // Pastikan class "dark" terpasang di elemen <html>
+    await expect(page.locator('html')).toHaveClass(/dark/);
+
+    // Muat ulang halaman (reload) dan pastikan preferensi tema gelap bertahan
+    await page.reload();
+    await expect(page.locator('html')).toHaveClass(/dark/);
+
+    // Pastikan tidak ada pelanggaran CSP di konsol browser
+    const cspErrors = consoleErrors.filter((err) =>
+      err.toLowerCase().includes('content security policy') ||
+      err.toLowerCase().includes('violates') ||
+      err.toLowerCase().includes('refused to')
+    );
+    expect(cspErrors).toEqual([]);
+
+    // Kembalikan ke mode Terang
+    const themeBtnAfterReload = page.getByRole('button', { name: 'Pilih tema tampilan' });
+    await themeBtnAfterReload.click();
+    await page.getByRole('menuitem', { name: 'Terang' }).click();
+    await expect(page.locator('html')).not.toHaveClass(/dark/);
+  });
 });

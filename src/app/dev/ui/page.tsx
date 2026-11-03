@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { DevButtonsSection } from './components/DevButtonsSection';
 import { DevBadgesSection } from './components/DevBadgesSection';
 import { DevFormsSection } from './components/DevFormsSection';
@@ -36,6 +37,7 @@ export default function DevUiPage() {
         <PageHeader
           title="Galeri Komponen (Genesis Design System)"
           description="Dokumentasi hidup seluruh komponen ui, layout, dan shared yang diimplementasikan sesuai Genesis (docs/DESIGN.md)."
+          actions={<ThemeToggle />}
         />
 
         <div className="space-y-12">

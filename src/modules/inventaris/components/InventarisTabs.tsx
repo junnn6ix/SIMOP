@@ -33,7 +33,7 @@ export function InventarisTabs({
           <Ticket className="h-4 w-4" />
           Tiket Layanan ({tiketList.length})
           {pendingTicketsCount > 0 && (
-            <span className="ml-1 rounded-full bg-warning px-1.5 py-0.2 text-2xs font-bold text-white leading-none">
+            <span className="ml-1 rounded-full bg-warning-tint text-warning-dark border border-warning/30 px-1.5 py-0.2 text-2xs font-bold leading-none">
               {pendingTicketsCount}
             </span>
           )}

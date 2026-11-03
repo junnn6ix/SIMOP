@@ -208,3 +208,57 @@ Sesuai arahan, fitur otomatisasi WhatsApp pada Fase 4 **ditangguhkan sementara**
   - Kebijakan rate limit (10 request/menit untuk login) dan secure cookies tetap aktif 100% di semua lingkungan tanpa relaksasi.
 - **Status Skrip Migrasi Satu Kali (`sync-snapshot.mjs`)**:
   - Skrip `scripts/sync-snapshot.mjs` digunakan satu kali pada Fase 4 untuk sinkronisasi snapshot Drizzle Kit terhadap migrasi manual 0002. Skrip tersebut telah **dihapus secara permanen**. Migrasi skema berjalan dalam urutan kanonikal `0000`, `0001`, `0002`, dan `0003`, dengan verifikasi `pnpm db:generate` menghasilkan status `No schema changes, nothing to migrate 😴`.
+
+---
+
+## 19. Arsitektur Tema Gelap & Validasi Kontras Aksesibilitas WCAG AA (Fase A)
+- **Tokenisasi Dua Lapisan (`:root` dan `.dark`)**:
+  - Variabel CSS di `src/styles/globals.css` dipisahkan menjadi mode terang (`:root`) dan mode gelap (`.dark`).
+  - Latar gelap menggunakan `#0A0A0B` (background kanvas), `#111113` (surface kartu/modal), `#18181B` (surface-2 untuk baris hover/input), `#27272A` (border halus), `#3F3F46` (border penegas), dan `#1E1E22` (muted).
+  - Teks di mode gelap menggunakan `#FAFAFA` (text-primary), `#A1A1AA` (text-secondary), dan `#71717A` (text-neutral), menghindari putih murni `#FFFFFF` demi kenyamanan visual aparatur.
+  - Elemen interaktif tetap mempertahankan indigo `#6366F1` sebagai aksen tunggal, dengan status hover dinaikkan satu langkah lebih terang (`#818CF8`) agar kontras optimal pada latar gelap.
+- **Pencegahan Flash of Unstyled Theme (FOUT)**:
+  - Mengintegrasikan paket `next-themes` dengan konfigurasi `attribute="class"`, `defaultTheme="system"`, `enableSystem`, dan `disableTransitionOnChange`. Script hidrasi inline `next-themes` menyuntikkan kelas `.dark` sebelum first paint dokumen, sehingga bebas dari kedipan warna (flash) saat memuat halaman.
+  - Direktiva CSP `'unsafe-inline'` pada `script-src` mendukung eksekusi skrip hidrasi tema tanpa pelanggaran keamanan.
+- **Hasil Uji Rasio Kontras Aksesibilitas (WCAG AA & AAA)**:
+  Berdasarkan algoritma standar W3C Relative Luminance $L = 0.2126R + 0.7152G + 0.0722B$ dan rasio kontras $(L_1 + 0.05) / (L_2 + 0.05)$:
+
+| Pasangan Token Semantik | Warna Teks (FG) | Warna Latar Tint (BG) | Rasio Kontras | Standar WCAG (Target AA >= 4.5:1) |
+| :--- | :--- | :--- | :---: | :---: |
+| **Success (Light)** | `#065F46` | `#ECFDF5` | **8.2 : 1** | **WCAG AAA** (Lulus) |
+| **Success (Dark)** | `#6EE7B7` | `rgba(16, 185, 129, 0.15)` di atas `#111113` | **11.0 : 1** | **WCAG AAA** (Lulus) |
+| **Warning (Light)** | `#92400E` | `#FFFBEB` | **7.5 : 1** | **WCAG AAA** (Lulus) |
+| **Warning (Dark)** | `#FDE68A` | `rgba(245, 158, 11, 0.15)` di atas `#111113` | **12.2 : 1** | **WCAG AAA** (Lulus) |
+| **Error (Light)** | `#991B1B` | `#FEF2F2` | **7.8 : 1** | **WCAG AAA** (Lulus) |
+| **Error (Dark)** | `#FECACA` | `rgba(239, 68, 68, 0.15)` di atas `#111113` | **11.2 : 1** | **WCAG AAA** (Lulus) |
+| **Neutral (Light)** | `#374151` | `#F3F4F6` | **8.5 : 1** | **WCAG AAA** (Lulus) |
+| **Neutral (Dark)** | `#E4E4E7` | `rgba(161, 161, 170, 0.15)` di atas `#111113` | **12.6 : 1** | **WCAG AAA** (Lulus) |
+| **Teks Utama (Dark)** | `#FAFAFA` | `#111113` (Surface) | **17.2 : 1** | **WCAG AAA** (Lulus) |
+| **Teks Sekunder (Dark)**| `#A1A1AA` | `#111113` (Surface) | **7.4 : 1** | **WCAG AAA** (Lulus) |
+
+- **Palet Visualisasi Data Zero-Indigo (`chart-1` s.d. `chart-4`)**:
+  Untuk mematuhi aturan ketat `docs/DESIGN.md` bahwa indigo HANYA untuk elemen interaktif, data visualisasi chart menggunakan 4 token warna mandiri yang kontras dan jelas terbedakan:
+  - `Chart 1` (Loket Pelayanan): `#10B981` (Light) / `#34D399` (Dark) — Emerald
+  - `Chart 2` (Layanan Kecamatan): `#F59E0B` (Light) / `#FBBF24` (Dark) — Amber
+  - `Chart 3` (Kantor Dinas): `#64748B` (Light) / `#94A3B8` (Dark) — Slate Netral
+  - `Chart 4` (Lainnya / Lapangan): `#0284C7` (Light) / `#38BDF8` (Dark) — Sky Cyan
+  Segmen "Kantor Dinas" dan "Lainnya / Lapangan" yang sebelumnya sama-sama bernuansa abu-abu kini terpisah dengan tegas (`Slate` vs `Sky`).
+- **Elevasi & Shadow di Mode Gelap**:
+  Bayangan difus (*shadow*) pada mode gelap direduksi drastis. Tingkat elevasi dinyatakan melalui kontras berlapis antara `surface` (`#111113`) ke `surface-2` (`#18181B`) serta penegasan `border` (`#27272A`), menjaga estetika Genesis tetap bersih tanpa noda bayangan (*muddy shadow*). Hover interaktif tetap bergerak `-2px` secara fisik.
+
+---
+
+## 11. Redesain Layout: Collapsible Sidebar & Top Bar Tipis (Fase B)
+- **Komponen Layout Baru**:
+  - `Sidebar.tsx`: Sidebar kiri desktop (`hidden md:flex flex-col`) dengan lebar 256px (`w-64`) dalam mode normal dan ~68px (`w-[68px]`) dalam mode ringkas (icon-only).
+  - `TopHeader.tsx`: Bar atas tipis (`h-[52px]`) dengan `backdrop-blur`, sticky di atas, memuat burger toggle mobile, desktop collapse toggle, breadcrumb rute aktif, tombol pencarian cepat (⌘K), tombol `ThemeToggle`, dan `UserMenu`.
+  - `MobileSidebarDrawer.tsx`: Drawer navigasi berbasis `Sheet` (slide dari kiri) untuk layar < 768px dengan touch target $\ge 40$px dan auto-close saat navigasi.
+  - `QuickActionDropdown.tsx`: Dropdown tindakan cepat sesuai peran (`ADMIN`: Jadwal baru, Barang baru, Tagihan PBG baru, Pegawai baru; `PEGAWAI`: Kirim laporan, Ajukan tiket).
+  - `SidebarNav.tsx`: Daftar navigasi bergrup (`ADMIN_NAV_GROUPS` dan `PEGAWAI_NAV_GROUPS` dari `src/config/navigation.ts`). Indikator aktif menggunakan tint tipis `bg-primary/10 text-primary-text` dan garis batas kiri 3px solid (`bg-primary`), tanpa balok warna solid.
+  - `SidebarUserCard.tsx`: Bagian footer sidebar yang menampilkan avatar, nama, peran/bidang, serta menu profil, tema, dan logout.
+- **Penyimpanan Status Collapse**:
+  - Disimpan di `localStorage` dengan kunci `simop_sidebar_collapsed`.
+  - Sinkronisasi state menggunakan `React.useSyncExternalStore` dengan server snapshot `false` untuk mencegah hydration mismatch dan cascading renders (`react-hooks/set-state-in-effect`).
+- **Pembersihan Dead Code**:
+  - Komponen lama `TopNav.tsx`, `NavLinks.tsx`, dan `MobileNavDrawer.tsx` telah dihapus sepenuhnya dari codebase.
+

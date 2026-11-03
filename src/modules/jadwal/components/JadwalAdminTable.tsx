@@ -316,7 +316,7 @@ export function JadwalAdminTable({ data }: JadwalAdminTableProps) {
                     <img
                       src={previewFotoUrl}
                       alt="Foto Bukti Tugas"
-                      className="w-full max-h-96 object-contain rounded-panel border border-border bg-black/5"
+                      className="w-full max-h-96 object-contain rounded-panel border border-border bg-muted"
                     />
                   </div>
                 )}

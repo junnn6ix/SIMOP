@@ -150,10 +150,10 @@ function VerifikasiModalContent({ item, onClose, onSuccess }: VerifikasiContentP
               {item.lokasiTipe === 'LOKET'
                 ? 'Loket Pelayanan'
                 : item.lokasiTipe === 'KECAMATAN'
-                ? 'Layanan Kecamatan'
-                : item.lokasiTipe === 'KANTOR'
-                ? 'Kantor Dinas'
-                : 'Lainnya / Lapangan'}
+                  ? 'Layanan Kecamatan'
+                  : item.lokasiTipe === 'KANTOR'
+                    ? 'Kantor Dinas'
+                    : 'Lainnya / Lapangan'}
             </span>
             {item.alamatLokasi && <span>• {item.alamatLokasi}</span>}
           </div>
@@ -183,7 +183,7 @@ function VerifikasiModalContent({ item, onClose, onSuccess }: VerifikasiContentP
                   href={fotoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block group relative overflow-hidden rounded border border-border/50 bg-black/5"
+                  className="block group relative overflow-hidden rounded border border-border/50 bg-muted"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -191,9 +191,9 @@ function VerifikasiModalContent({ item, onClose, onSuccess }: VerifikasiContentP
                     alt="Bukti Tugas"
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform"
                   />
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-xs text-white font-medium transition-opacity">
-                    Klik untuk Memperbesar
-                  </div>
+                    <div className="absolute inset-0 bg-overlay opacity-0 group-hover:opacity-100 flex items-center justify-center text-xs text-text-primary font-medium transition-opacity">
+                      Klik untuk Memperbesar
+                    </div>
                 </a>
               ) : (
                 <div className="h-32 flex items-center justify-center text-xs text-text-secondary">

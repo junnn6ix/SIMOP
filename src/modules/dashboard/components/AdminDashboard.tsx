@@ -31,22 +31,22 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
     {
       label: 'Kantor Dinas',
       value: penugasanHariIni.kantor,
-      color: 'var(--color-neutral-dark)',
+      color: 'var(--color-chart-3)',
     },
     {
       label: 'Loket Pelayanan',
       value: penugasanHariIni.loket,
-      color: 'var(--color-success)',
+      color: 'var(--color-chart-1)',
     },
     {
       label: 'Layanan Kecamatan',
       value: penugasanHariIni.kecamatan,
-      color: 'var(--color-warning)',
+      color: 'var(--color-chart-2)',
     },
     {
       label: 'Lainnya / Lapangan',
       value: penugasanHariIni.lainnya,
-      color: 'var(--color-text-secondary)',
+      color: 'var(--color-chart-4)',
     },
   ];
 
@@ -76,7 +76,7 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
           label="PBG Jatuh Tempo"
           value={alerts.pbgDueSoon.count}
           icon={<ReceiptText className="h-5 w-5" />}
-          description="Tagihan rentang \u2264 3 hari"
+          description="Tagihan rentang ≤ 3 hari"
         />
       </CardGroup>
 
@@ -110,16 +110,16 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
           </div>
           <div className="pt-3 border-t border-border grid grid-cols-2 gap-2 text-xs text-text-secondary">
             <span className="flex items-center gap-1.5">
-              <Building className="h-3.5 w-3.5 text-text-secondary" /> {penugasanHariIni.kantor} Kantor
+              <Building className="h-3.5 w-3.5 text-chart-3" /> {penugasanHariIni.kantor} Kantor
             </span>
             <span className="flex items-center gap-1.5">
-              <Store className="h-3.5 w-3.5 text-success" /> {penugasanHariIni.loket} Loket
+              <Store className="h-3.5 w-3.5 text-chart-1" /> {penugasanHariIni.loket} Loket
             </span>
             <span className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 text-warning" /> {penugasanHariIni.kecamatan} Kecamatan
+              <MapPin className="h-3.5 w-3.5 text-chart-2" /> {penugasanHariIni.kecamatan} Kecamatan
             </span>
             <span className="flex items-center gap-1.5">
-              <Layers className="h-3.5 w-3.5 text-text-secondary" /> {penugasanHariIni.lainnya} Lainnya
+              <Layers className="h-3.5 w-3.5 text-chart-4" /> {penugasanHariIni.lainnya} Lainnya
             </span>
           </div>
         </Card>
@@ -159,7 +159,7 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
             {/* Alert 3: Stok Menipis */}
             <AlertCard
               title="Stok ATK Menipis"
-              description="Item inventaris dengan stok \u2264 limit batas minimum yang perlu pengadaan ulang."
+              description="Item inventaris dengan stok ≤ limit batas minimum yang perlu pengadaan ulang."
               count={alerts.stokMenipis.count}
               href="/admin/inventaris"
               linkText="Periksa Inventaris"
@@ -168,7 +168,7 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
 
             {/* Alert 4: Retribusi PBG Jatuh Tempo */}
             <AlertCard
-              title="PBG Jatuh Tempo \u2264 3 Hari"
+              title="PBG Jatuh Tempo ≤ 3 Hari"
               description="Ketetapan retribusi PBG belum bayar yang mendekati batas waktu jatuh tempo."
               count={alerts.pbgDueSoon.count}
               href="/admin/pbg"

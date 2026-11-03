@@ -196,8 +196,8 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
             <span
               className={
                 row.original.barangStok < row.original.jumlah &&
-                row.original.jenis === 'PERMINTAAN_BARANG' &&
-                row.original.status === 'MENUNGGU'
+                  row.original.jenis === 'PERMINTAAN_BARANG' &&
+                  row.original.status === 'MENUNGGU'
                   ? 'text-error font-semibold'
                   : 'text-text-secondary'
               }
@@ -216,11 +216,10 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
         return (
           <div>
             <span
-              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold border ${
-                isPermintaan
+              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold border ${isPermintaan
                   ? 'bg-brand/10 text-brand border-brand/20'
                   : 'bg-warning-tint text-warning-dark border-warning/30'
-              }`}
+                }`}
             >
               {isPermintaan ? 'Permintaan Barang' : 'Lapor Kerusakan'}
             </span>
@@ -430,11 +429,10 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                 <div className="flex justify-between">
                   <span className="text-text-secondary">Stok Tersedia:</span>
                   <span
-                    className={`font-bold ${
-                      accTarget.barangStok >= accTarget.jumlah
+                    className={`font-bold ${accTarget.barangStok >= accTarget.jumlah
                         ? 'text-success'
                         : 'text-error'
-                    }`}
+                      }`}
                   >
                     {accTarget.barangStok} {accTarget.barangSatuan || 'Pcs'}
                   </span>
@@ -483,7 +481,7 @@ export function TiketAdminTable({ data }: TiketAdminTableProps) {
                 (accTarget?.jenis === 'PERMINTAAN_BARANG' &&
                   accTarget.barangStok < accTarget.jumlah)
               }
-              className="bg-success text-white hover:bg-success-dark"
+              className="bg-success text-surface hover:bg-success-dark"
             >
               {isSubmittingAcc ? 'Memproses...' : 'Setujui (ACC)'}
             </Button>

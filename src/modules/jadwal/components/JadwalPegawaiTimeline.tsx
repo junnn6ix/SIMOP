@@ -146,10 +146,10 @@ export function JadwalPegawaiTimeline({ initialItems }: JadwalPegawaiTimelinePro
                           {item.lokasiTipe === 'LOKET'
                             ? 'Loket Pelayanan'
                             : item.lokasiTipe === 'KECAMATAN'
-                            ? 'Layanan Kecamatan'
-                            : item.lokasiTipe === 'KANTOR'
-                            ? 'Kantor Dinas'
-                            : 'Lainnya / Lapangan'}
+                              ? 'Layanan Kecamatan'
+                              : item.lokasiTipe === 'KANTOR'
+                                ? 'Kantor Dinas'
+                                : 'Lainnya / Lapangan'}
                         </span>
                         {item.alamatLokasi && <span>• {item.alamatLokasi}</span>}
                       </div>
@@ -236,7 +236,7 @@ export function JadwalPegawaiTimeline({ initialItems }: JadwalPegawaiTimelinePro
                     <img
                       src={previewFotoUrl}
                       alt="Foto Bukti Tugas"
-                      className="w-full max-h-96 object-contain rounded-panel border border-border bg-black/5"
+                      className="w-full max-h-96 object-contain rounded-panel border border-border bg-muted"
                     />
                   </div>
                 )}
