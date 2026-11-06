@@ -1,0 +1,77 @@
+sequenceDiagram
+    autonumber
+    actor Pegawai as Pegawai Pelaksana
+    actor Admin as Administrator / Verifikator
+    participant UI as Browser UI
+    participant UploadAPI as Route Handler (/api/uploads/*)
+    participant Action as Server Actions
+    participant R2 as Cloudflare R2 Storage
+    participant DB as PostgreSQL (Neon DB)
+
+    Note over Pegawai, DB: Tahap 1: Pengunggahan Bukti Tugas Dinas
+    Pegawai->>UI: Unggah foto bukti tugas & klik Kirim Laporan
+    activate UI
+    UI->>UploadAPI: POST /api/uploads/sign {jadwalId, slot, contentType, fileSize}
+    activate UploadAPI
+    UploadAPI->>DB: Validasi kepemilikan tugas pegawai
+    activate DB
+    DB-->>UploadAPI: Tugas sah & berstatus BELUM_DIKERJAKAN
+    deactivate DB
+    UploadAPI-->>UI: {presignedUrl, objectKey}
+    deactivate UploadAPI
+
+    UI->>R2: PUT payload binary langsung ke presignedUrl
+    activate R2
+    R2-->>UI: HTTP 200 OK
+    deactivate R2
+
+    UI->>Action: submitLaporanAction({jadwalId, buktiKey, pdfKey})
+    activate Action
+    Action->>R2: HeadObjectCommand(buktiKey) (Cek ukuran <= 5 MB & MIME)
+    activate R2
+    R2-->>Action: Metadata berkas valid
+    deactivate R2
+
+    Action->>DB: UPDATE jadwal SET status='MENUNGGU_VERIFIKASI', bukti_key=?
+    activate DB
+    DB-->>Action: Data jadwal diperbarui
+    deactivate DB
+    Action-->>UI: Laporan berhasil dikirim
+    deactivate Action
+    UI-->>Pegawai: Notifikasi sukses
+    deactivate UI
+
+    Note over Admin, DB: Tahap 2: Verifikasi & Keputusan oleh Admin
+    Admin->>UI: Buka /admin/verifikasi
+    activate UI
+    UI->>UploadAPI: GET /api/uploads/preview?key=buktiKey
+    activate UploadAPI
+    UploadAPI-->>UI: {previewUrl} (berlaku 300 detik)
+    deactivate UploadAPI
+    UI-->>Admin: Pratinjau foto kegiatan lapangan
+
+    alt Keputusan ACC
+        Admin->>UI: Klik Setujui (ACC)
+        UI->>Action: verifikasiJadwalAction({jadwalId, decision: 'ACC'})
+        activate Action
+        Action->>DB: UPDATE jadwal SET status='SELESAI', diverifikasi_pada=NOW()
+        activate DB
+        DB-->>Action: Berhasil
+        deactivate DB
+        Action-->>UI: Berhasil ACC
+        deactivate Action
+        UI-->>Admin: Laporan disetujui
+    else Keputusan TOLAK
+        Admin->>UI: Isi catatan perbaikan & klik Tolak
+        UI->>Action: verifikasiJadwalAction({jadwalId, decision: 'TOLAK', catatanVerifikator})
+        activate Action
+        Action->>DB: UPDATE jadwal SET status='BELUM_DIKERJAKAN', catatan_verifikator=?
+        activate DB
+        DB-->>Action: Berhasil
+        deactivate DB
+        Action-->>UI: Laporan dikembalikan
+        deactivate Action
+        UI-->>Admin: Laporan dikembalikan ke staf
+        deactivate UI
+    end
+

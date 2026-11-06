@@ -1,0 +1,81 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+autonumber
+
+actor "Pegawai Pemohon" as Pegawai
+actor "Administrator" as Admin
+participant "Antarmuka Klien\n(Browser UI)" as UI
+participant "Server Actions\n(createTiket / accTiket)" as Action
+database "PostgreSQL\n(Neon DB)" as DB
+
+== 1. Tahap Pengajuan Tiket Layanan ==
+Pegawai -> UI: Pilih barang aktif, isi jumlah & keperluan, klik "Ajukan Tiket"
+activate UI
+
+UI -> Action: createTiketAction({barangId, jenis: 'PERMINTAAN_BARANG', jumlah, keperluan})
+activate Action
+
+Action -> DB: SELECT * FROM barang WHERE id = ? AND diarsipkan_pada IS NULL
+activate DB
+DB --> Action: Data barang aktif
+deactivate DB
+
+Action -> Action: Generate nomor tiket TKT-YYYYMMDD-XXXX
+Action -> DB: INSERT INTO tiket (nomor_tiket, pemohon_id, barang_id, jenis, jumlah, keperluan, status='MENUNGGU')
+activate DB
+DB --> Action: Tiket berhasil disimpan
+deactivate DB
+
+Action --> UI: {success: true, message: "Tiket layanan #TKT-... berhasil diajukan"}
+deactivate Action
+UI --> Pegawai: Toast sukses & tiket muncul di daftar riwayat
+deactivate UI
+
+== 2. Tahap Persetujuan (ACC) & Pemotongan Stok Atomik ==
+Admin -> UI: Buka tab Tiket Layanan & klik tombol "ACC"
+activate UI
+
+UI -> Action: accTiketAction({tiketId, catatanAdmin})
+activate Action
+
+Action -> DB: BEGIN TRANSACTION
+activate DB
+
+Action -> DB: UPDATE tiket SET status='ACC', catatan_admin=? WHERE id=? AND status='MENUNGGU' RETURNING *
+note right: Langkah 1: Row lock & klaim atomik status tiket
+
+alt Tiket sudah di-ACC oleh admin lain (0 baris terpengaruh)
+  DB --> Action: 0 rows returned
+  Action -> DB: ROLLBACK
+  Action --> UI: Error "Tiket sudah tidak berstatus MENUNGGU"
+  UI --> Admin: Notifikasi gagal (mencegah double ACC)
+else Tiket berhasil diklaim
+  DB --> Action: Data tiket terupdate
+
+  Action -> DB: UPDATE barang SET stok = stok - ? WHERE id = ? AND stok >= ? RETURNING stok
+  note right: Langkah 2: Pemotongan stok atomik (stok >= jumlah)
+
+  alt Stok fisik tidak mencukupi (0 baris terpengaruh)
+    DB --> Action: 0 rows returned
+    Action -> DB: ROLLBACK
+    Action --> UI: Error "Stok barang tidak mencukupi untuk memenuhi permintaan"
+    UI --> Admin: Notifikasi penolakan karena stok kurang
+  else Stok berhasil dipotong
+    DB --> Action: Stok baru (stok_sesudah)
+
+    Action -> DB: INSERT INTO stok_log (barang_id, tipe='KELUAR', jumlah, stok_sebelum, stok_sesudah, tiket_id, user_id)
+    note right: Langkah 3: Pencatatan mutasi audit stok_log
+
+    DB --> Action: Log mutasi tercatat
+    Action -> DB: COMMIT TRANSACTION
+    deactivate DB
+
+    Action --> UI: {success: true, message: "Tiket #TKT-... berhasil disetujui (ACC)"}
+    deactivate Action
+    UI --> Admin: Toast sukses & stok di tabel barang otomatis berkurang
+    deactivate UI
+  end
+end
+@enduml
+

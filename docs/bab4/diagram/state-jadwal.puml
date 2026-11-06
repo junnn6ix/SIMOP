@@ -1,0 +1,21 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+
+[*] --> BELUM_DIKERJAKAN : createJadwalRangeAction()\n(Admin membuat jadwal rentang)
+
+BELUM_DIKERJAKAN --> MENUNGGU_VERIFIKASI : submitLaporanAction()\n[Pegawai unggah foto bukti <= 5 MB]
+
+MENUNGGU_VERIFIKASI --> SELESAI : verifikasiJadwalAction(decision: 'ACC')\n[Admin menyetujui laporan]
+
+MENUNGGU_VERIFIKASI --> BELUM_DIKERJAKAN : verifikasiJadwalAction(decision: 'TOLAK')\n[Admin menolak & isi catatan revisi min 5 kar]
+
+SELESAI --> [*] : Penugasan tuntas (Permanen)
+
+note right of BELUM_DIKERJAKAN
+  Nilai enum 'DITOLAK' ada pada PostgreSQL,
+  namun alur kode mengembalikan tugas ke
+  BELUM_DIKERJAKAN agar pegawai dapat merevisi.
+end note
+@enduml
+

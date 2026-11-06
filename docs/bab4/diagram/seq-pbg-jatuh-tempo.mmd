@@ -1,0 +1,37 @@
+sequenceDiagram
+    autonumber
+    actor Admin as Administrator
+    participant UI as Browser UI
+    participant Server as Server Query & Actions
+    participant DB as PostgreSQL (Neon DB)
+
+    Note over Admin, DB: Tahap 1: Deteksi Jatuh Tempo H-3 di SQL
+    Admin->>UI: Buka /admin/pbg, filter Jatuh Tempo <= 3 Hari
+    activate UI
+    UI->>Server: getPbgList({status: 'JATUH_TEMPO_3_HARI'})
+    activate Server
+    Server->>Server: Kalkulasi batas rentang kalender WIB (H s.d. H+3)
+    Server->>DB: SELECT * FROM pbg WHERE status='BELUM_BAYAR' AND jatuh_tempo BETWEEN today AND today+3
+    activate DB
+    DB-->>Server: Daftar rekaman tagihan
+    deactivate DB
+    Server->>Server: Masking nomor WA (62812****7890)
+    Server-->>UI: Data tersaring dengan nomor tersensor
+    deactivate Server
+    UI-->>Admin: Menampilkan daftar tagihan PBG jatuh tempo
+    deactivate UI
+
+    Note over Admin, DB: Tahap 2: Pembayaran & Pelunasan SKRD
+    Admin->>UI: Pemohon membayar, klik Tandai Lunas
+    activate UI
+    UI->>Server: markPbgLunasAction(id)
+    activate Server
+    Server->>DB: UPDATE pbg SET status='LUNAS', dibayar_pada=NOW() WHERE id=?
+    activate DB
+    DB-->>Server: Baris terupdate
+    deactivate DB
+    Server-->>UI: Tagihan berhasil ditandai LUNAS
+    deactivate Server
+    UI-->>Admin: Toast sukses & status berganti LUNAS
+    deactivate UI
+

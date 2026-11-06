@@ -1,0 +1,68 @@
+sequenceDiagram
+    autonumber
+    actor User as Pengguna (Admin/Pegawai)
+    participant UI as LoginForm (UI Browser)
+    participant AuthAPI as Route Handler (/api/auth/[...all])
+    participant Engine as Better Auth Engine & Limiter
+    participant DB as PostgreSQL (Neon DB)
+
+    User->>UI: Input username & password, klik Masuk
+    activate UI
+    UI->>AuthAPI: POST /api/auth/sign-in/username {username, password}
+    activate AuthAPI
+    AuthAPI->>Engine: Proses autentikasi kredensial
+    activate Engine
+
+    Engine->>DB: Periksa kuota di tabel rate_limits
+    activate DB
+    DB-->>Engine: Hasil hitung kuota
+    deactivate DB
+
+    alt Percobaan > 10 per menit
+        Engine-->>AuthAPI: HTTP 429 Too Many Requests
+        AuthAPI-->>UI: Error 429
+        UI-->>User: Tampilkan peringatan batas percobaan
+    else Kuota aman (<= 10 req/menit)
+        Engine->>DB: SELECT * FROM users WHERE username = ?
+        activate DB
+        DB-->>Engine: Data pengguna
+        deactivate DB
+
+        alt Pengguna tidak ditemukan
+            Engine-->>AuthAPI: HTTP 400 Invalid Credentials
+            AuthAPI-->>UI: Error nama pengguna/sandi salah
+            UI-->>User: Tampilkan pesan error
+        else Pengguna ditemukan
+            alt Status nonaktif / banned (aktif=false / banned=true)
+                Engine-->>AuthAPI: HTTP 403 BANNED_USER
+                AuthAPI-->>UI: Error BANNED_USER
+                UI-->>User: Tampilkan pesan akun dinonaktifkan
+            else Pengguna aktif
+                Engine->>DB: SELECT password FROM accounts WHERE user_id = ?
+                activate DB
+                DB-->>Engine: Password hash
+                deactivate DB
+
+                Engine->>Engine: Verifikasi Scrypt hash
+
+                alt Password salah
+                    Engine-->>AuthAPI: HTTP 400 Invalid Credentials
+                    AuthAPI-->>UI: Error kecocokan sandi
+                    UI-->>User: Tampilkan pesan gagal masuk
+                else Password cocok
+                    Engine->>DB: INSERT INTO sessions (token, user_id, expires_at)
+                    activate DB
+                    DB-->>Engine: Sesi dibuat
+                    deactivate DB
+
+                    Engine-->>AuthAPI: Set-Cookie session_token (HttpOnly)
+                    deactivate Engine
+                    AuthAPI-->>UI: HTTP 200 OK
+                    deactivate AuthAPI
+                    UI-->>User: Toast sukses & redirect ke /dashboard
+                    deactivate UI
+                end
+            end
+        end
+    end
+

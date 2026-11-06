@@ -1,0 +1,58 @@
+graph TD
+    subgraph ClientLayer ["Lapisan Klien (Peramban / Browser)"]
+        UI["Antarmuka Pengguna (Next.js 16 App Router)"]
+        Forms["Formulir & Dialog Interaktif"]
+        DirectUpload["Unggah Biner Langsung (Direct S3 PUT)"]
+    end
+
+    subgraph SecurityLayer ["Lapisan Keamanan & Jaringan"]
+        CSP["HTTP Security Headers & CSP Dinamis<br/>(next.config.ts)"]
+        RateLimit["Rate Limiter Berbasis Database<br/>(Better Auth & rate_limits)"]
+        TrustedOrigins["Resolusi Asal Tepercaya<br/>(resolveTrustedOrigins)"]
+    end
+
+    subgraph AuthLayer ["Lapisan Autentikasi & Otorisasi"]
+        BetterAuth["Better Auth 1.2.9 Engine<br/>(Scrypt Hashing, Session Cookie)"]
+        Guard["Guard Sesi Terpusat (requireRole)<br/>(Validasi Status Aktif ke PostgreSQL)"]
+    end
+
+    subgraph LogicLayer ["Lapisan Logika Bisnis (Server-Side)"]
+        RouteHandlers["Route Handlers (REST API)<br/>(/api/uploads/sign, /api/uploads/preview)"]
+        ServerActions["Next.js Server Actions<br/>(pegawai, jadwal, inventaris, tiket, pbg, profil, search)"]
+        ZodValidation["Validasi Skema Zod Terpusat<br/>(Type-Safe Input Validation)"]
+    end
+
+    subgraph DataAccessLayer ["Lapisan Akses Data & Transaksi"]
+        Drizzle["Drizzle ORM 0.40.0<br/>(Node-Postgres Adapter)"]
+        TxManager["Interactive Database Transactions<br/>(db.transaction & Row Locks)"]
+        PgPool["Connection Pool (pg.Pool)<br/>(max: 5, idleTimeoutMillis: 30000, ssl: true)"]
+    end
+
+    subgraph StorageInfrastructure ["Infrastruktur Penyimpanan & Basis Data"]
+        NeonDB[("Basis Data PostgreSQL 16<br/>(Neon Serverless Database)")]
+        R2Bucket[("Cloudflare R2 Object Storage<br/>(Bucket Privat & Presigned URLs)")]
+    end
+
+    UI -->|"HTTP GET/POST / Navigasi"| CSP
+    Forms -->|"Panggilan Server Actions"| CSP
+    DirectUpload -->|"HTTP PUT Biner (Presigned URL)"| R2Bucket
+
+    CSP --> RateLimit
+    RateLimit --> TrustedOrigins
+    TrustedOrigins --> Guard
+    Guard --> BetterAuth
+
+    Guard -->|"Terotorisasi"| RouteHandlers
+    Guard -->|"Terotorisasi"| ServerActions
+
+    RouteHandlers --> ZodValidation
+    ServerActions --> ZodValidation
+
+    ZodValidation --> Drizzle
+    RouteHandlers -->|"Penerbitan Presigned URL"| R2Bucket
+    ServerActions -->|"Verifikasi Objek (HeadObjectCommand)"| R2Bucket
+
+    Drizzle --> TxManager
+    TxManager --> PgPool
+    PgPool --> NeonDB
+

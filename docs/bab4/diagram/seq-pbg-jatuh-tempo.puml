@@ -1,0 +1,65 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+autonumber
+
+actor "Administrator" as Admin
+participant "Antarmuka Klien\n(Browser UI)" as UI
+participant "Server Query / Action\n(getPbgList / markPbgLunas)" as Server
+database "PostgreSQL\n(Neon DB)" as DB
+
+== 1. Monitoring Jatuh Tempo H-3 Melalui Antarmuka ==
+Admin -> UI: Buka menu /admin/pbg & filter "Jatuh Tempo <= 3 Hari"
+activate UI
+
+UI -> Server: getPbgList({status: 'JATUH_TEMPO_3_HARI'})
+activate Server
+
+Server -> Server: Hitung tanggal WIB: todayWib s.d. todayWib + 3 hari
+Server -> DB: SELECT * FROM pbg WHERE status='BELUM_BAYAR' AND jatuh_tempo >= $1::date AND jatuh_tempo <= $2::date
+activate DB
+DB --> Server: Daftar baris tagihan retribusi PBG
+deactivate DB
+
+Server -> Server: Sensor nomor WhatsApp pemohon (maskWaNumber: 62812****7890)
+Server --> UI: Data tagihan tersaring dengan nomor WA tersensor
+deactivate Server
+
+UI --> Admin: Tampilkan daftar tagihan PBG mendekati jatuh tempo
+deactivate UI
+
+== 2. Penandaan Status Lunas Retribusi PBG ==
+Admin -> UI: Pemohon membayar, klik "Tandai Lunas" pada baris tagihan
+activate UI
+
+UI -> Server: markPbgLunasAction(id)
+activate Server
+
+Server -> DB: SELECT status FROM pbg WHERE id = ?
+activate DB
+DB --> Server: Data status tagihan
+deactivate DB
+
+alt Tagihan sudah berstatus LUNAS
+  Server --> UI: Error "Tagihan PBG ini sudah berstatus LUNAS"
+  UI --> Admin: Peringatan status
+else Tagihan berstatus BELUM_BAYAR
+  Server -> DB: UPDATE pbg SET status='LUNAS', dibayar_pada=NOW(), updated_at=NOW() WHERE id = ?
+  activate DB
+  DB --> Server: Baris tagihan terupdate
+  deactivate DB
+
+  Server --> UI: {success: true, message: "Tagihan SKRD ... berhasil ditandai LUNAS"}
+  deactivate Server
+  UI --> Admin: Toast sukses, badge status berubah hijau (LUNAS), & hilang dari alert jatuh tempo
+  deactivate UI
+end
+
+note over Admin, DB
+  [CATATAN FAKTA REVERSE ENGINEERING]:
+  Fitur pengiriman notifikasi WhatsApp otomatis melalui Fonnte Gateway dan cron job /api/cron/pbg-reminder
+  DITANGGUHKAN SEMENTARA pada implementasi Fase 4 demi stabilitas data retribusi dan verifikasi domain.
+  Tabel 'notifikasi_log' dan 'pengaturan' berstatus [SKEMA SAJA / TIDAK TERHUBUNG].
+end note
+@enduml
+

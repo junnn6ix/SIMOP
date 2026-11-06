@@ -1,0 +1,40 @@
+flowchart LR
+    Admin([Administrator])
+    Pegawai([Pegawai / Staf Dinas])
+
+    subgraph SIMOP ["Sistem Informasi Operasional & Pelayanan (SIMOP DPMPTSP)"]
+        UC01["UC-01 Autentikasi Masuk Akun"]
+        UC02["UC-02 Kelola Data & Akun Pegawai"]
+        UC03["UC-03 Atur Penugasan & Jadwal Dinas"]
+        UC04["UC-04 Lapor Bukti Tugas & Unggah Berkas"]
+        UC05["UC-05 Verifikasi Laporan Tugas Dinas"]
+        UC06["UC-06 Kelola Inventaris & Penyesuaian Stok"]
+        UC07["UC-07 Ajukan Tiket Layanan & Kerusakan"]
+        UC08["UC-08 Proses & Setujui Tiket Layanan"]
+        UC09["UC-09 Monitoring Retribusi PBG & SKRD"]
+        UC10["UC-10 Ubah Kata Sandi Mandiri"]
+        UC11["UC-11 Pencarian Cepat Global (Cmd+K)"]
+        
+        UC_Upload["Unggah Bukti ke Cloudflare R2"]
+        UC_PotongStok["Potong Stok Barang Otomatis"]
+    end
+
+    Admin --> UC01
+    Admin --> UC02
+    Admin --> UC03
+    Admin --> UC05
+    Admin --> UC06
+    Admin --> UC08
+    Admin --> UC09
+    Admin --> UC10
+    Admin --> UC11
+
+    Pegawai --> UC01
+    Pegawai --> UC04
+    Pegawai --> UC07
+    Pegawai --> UC10
+    Pegawai --> UC11
+
+    UC04 -.->|«include»| UC_Upload
+    UC08 -.->|«include»| UC_PotongStok
+

@@ -8,6 +8,7 @@ import {
   Undo2,
   Trash2,
   Receipt,
+  Send,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { DataTable } from '@/components/shared/DataTable';
@@ -31,6 +32,7 @@ import {
   unmarkPbgLunasAction,
   deletePbgAction,
   getPbgFullContactAction,
+  triggerPbgReminderAction,
 } from '../actions';
 
 export interface PbgItem {
@@ -45,6 +47,8 @@ export interface PbgItem {
   dibayarPada: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  lastNotifikasiAt?: Date | null;
+  notifikasiCount?: number;
 }
 
 export interface PbgTableProps {
@@ -91,6 +95,9 @@ export function PbgTable({ data }: PbgTableProps) {
 
   const [deleteTarget, setDeleteTarget] = React.useState<PbgItem | null>(null);
   const [isSubmittingDelete, setIsSubmittingDelete] = React.useState(false);
+
+  const [reminderTarget, setReminderTarget] = React.useState<PbgItem | null>(null);
+  const [isSubmittingReminder, setIsSubmittingReminder] = React.useState(false);
 
   const filteredData = React.useMemo(() => {
     return data.filter((item) => {
@@ -167,6 +174,24 @@ export function PbgTable({ data }: PbgTableProps) {
       toast.error(err.message || 'Gagal menghapus tagihan PBG.');
     } finally {
       setIsSubmittingDelete(false);
+    }
+  };
+
+  const handleSendSingleReminder = async () => {
+    if (!reminderTarget) return;
+    setIsSubmittingReminder(true);
+    try {
+      const res = await triggerPbgReminderAction({
+        trigger: 'MANUAL',
+        pbgIds: [reminderTarget.id],
+      });
+      toast.success(res.message);
+      setReminderTarget(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal mengirim pengingat.';
+      toast.error(msg);
+    } finally {
+      setIsSubmittingReminder(false);
     }
   };
 
@@ -267,13 +292,23 @@ export function PbgTable({ data }: PbgTableProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               {item.status === 'BELUM_BAYAR' ? (
-                <DropdownMenuItem
-                  onClick={() => setLunasTarget(item)}
-                  className="text-success focus:text-success"
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Tandai LUNAS
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem
+                    onClick={() => setLunasTarget(item)}
+                    className="text-success focus:text-success"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Tandai LUNAS
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={() => setReminderTarget(item)}
+                    className="text-primary focus:text-primary"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Kirim Pengingat WA
+                  </DropdownMenuItem>
+                </>
               ) : (
                 <DropdownMenuItem onClick={() => setUnmarkTarget(item)}>
                   <Undo2 className="h-4 w-4 mr-2 text-warning" />
@@ -379,6 +414,22 @@ export function PbgTable({ data }: PbgTableProps) {
         variant="destructive"
         onConfirm={handleDeleteConfirm}
         isLoading={isSubmittingDelete}
+      />
+
+      {/* Confirm Dialog Kirim Pengingat Tunggal */}
+      <ConfirmDialog
+        open={!!reminderTarget}
+        onOpenChange={(open) => !open && setReminderTarget(null)}
+        title="Kirim Pengingat WhatsApp"
+        description={
+          reminderTarget?.notifikasiCount && reminderTarget.notifikasiCount > 0
+            ? `Peringatan: Pengingat WhatsApp untuk tagihan ini sudah pernah dikirim sebelumnya (${reminderTarget.notifikasiCount} kali, terakhir ${formatDate(reminderTarget.lastNotifikasiAt || reminderTarget.updatedAt)}). Apakah Anda yakin ingin mengirim pengingat tambahan kepada pemohon ${reminderTarget.pemohon}? (Pengiriman dibatasi maksimal 1 pesan per jam).`
+            : `Kirim notifikasi pengingat retribusi PBG ke nomor WhatsApp pemohon ${reminderTarget?.pemohon || ''} (${reminderTarget?.noWa || ''}) untuk SKRD ${reminderTarget?.noSkrd || ''}?`
+        }
+        confirmLabel="Kirim Pengingat"
+        variant="primary"
+        isLoading={isSubmittingReminder}
+        onConfirm={handleSendSingleReminder}
       />
     </>
   );

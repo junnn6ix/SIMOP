@@ -1,6 +1,6 @@
 {
   "id": "0004_canonical_jadwal_tanggal",
-  "prevId": "0004_canonical_jadwal_tanggal",
+  "prevId": "7b6d51e7-98c2-4293-80be-6808c6d2f12c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {

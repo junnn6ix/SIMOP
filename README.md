@@ -247,6 +247,45 @@ Aplikasi dikonfigurasi dengan header keamanan HTTP ketat pada `next.config.ts`:
 
 ---
 
+## 📌 Panduan Otomatisasi Bot WhatsApp & Cron Pengingat PBG (Fase 4b)
+
+Modul pengingat retribusi Persetujuan Bangunan Gedung (PBG) beroperasi secara otomatis melalui cron serverless dan dapat dipicu secara manual oleh Administrator.
+
+### 1. Cara Mengaktifkan Bot WhatsApp
+1. **Konfigurasi Environment Variable**:
+   - Di Vercel atau `.env.local`, set variabel:
+     ```env
+     FONNTE_TOKEN="token_device_fonnte_anda"
+     CRON_SECRET="kunci_rahasia_bearer_token_acak_minimal_32_karakter"
+     ```
+   - Catatan: Pada lingkungan production, `CRON_SECRET` wajib diisi demi keamanan *fail-closed*. Jika `FONNTE_TOKEN` belum diatur atau kosong, sistem secara otomatis beralih ke mode **Dry-Run** (simulasi pencatatan di basis data tanpa memotong kuota gateway).
+2. **Aktivasi Antarmuka**:
+   - Masuk sebagai Administrator ke halaman `/admin/pbg`.
+   - Pilih tab **Pengaturan Bot WA**.
+   - Aktifkan toggle **Status Otomatisasi Bot WhatsApp** dan klik tombol **Simpan Pengaturan**.
+3. **Uji Coba Awal**:
+   - Daftarkan satu data tagihan uji coba dengan nomor kontak WhatsApp Anda sendiri.
+   - Buka menu aksi baris tagihan pada tabel PBG lalu klik **Kirim Pengingat WA**.
+   - Verifikasi bahwa pesan diterima dan status log tercatat pada tab **Riwayat Pengiriman**.
+
+### 2. Jadwal & Batasan Cron Serverless (Vercel Hobby)
+- **Endpoint Cron**: `GET /api/cron/pbg-reminder`
+- **Jadwal Eksekusi**: Setiap hari pukul `02.00 UTC` (`09.00 WIB`), dikonfigurasi melalui `vercel.json` (`schedule: "0 2 * * *"`).
+- **Batasan Paket Vercel Hobby**: Paket Hobby Vercel mengizinkan maksimal 1 kali eksekusi cron per hari. Jadwal `0 2 * * *` dirancang tepat satu kali setiap pagi pada jam kerja dinas.
+- **Otorisasi**: Panggilan ke endpoint cron wajib menyertakan header `Authorization: Bearer <CRON_SECRET>`. Endpoint membandingkan token secara aman menggunakan algoritma `crypto.timingSafeEqual` dan langsung menolak (401 Unauthorized) jika token tidak cocok atau tidak disetel.
+
+### 3. Pemicu Pengingat Manual (On-Demand)
+Administrator dapat memicu pengiriman pengingat sewaktu-waktu:
+- **Pengiriman Massal**: Tombol **Kirim Sekarang** di tab *Pengaturan Bot WA* (menampilkan konfirmasi jumlah tagihan belum bayar dalam rentang H-3).
+- **Pengiriman Per Tagihan**: Tombol menu aksi **Kirim Pengingat WA** pada setiap baris tagihan berstatus `BELUM_BAYAR` di tabel PBG.
+
+### 4. Kebijakan Privasi & Perlindungan Data Pribadi (UU PDP)
+- Nomor WhatsApp pemohon merupakan data pribadi yang dilindungi oleh Undang-Undang No. 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP).
+- **Masking Terpadu**: Seluruh nomor kontak disensor di tingkat server (`maskWaNumber`, misal `62812****7890`) sebelum ditampilkan di antarmuka publik maupun dicatat pada tabel audit `notifikasi_log`.
+- **Kerahasiaan Kredensial**: Token API Fonnte dan nomor seluler utuh tidak pernah dicatat dalam log konsol, basis data riwayat, atau pesan error.
+- **Izin Kedinasan**: Pastikan pengiriman pesan WhatsApp dilakukan dengan izin instansi DPMPTSP Kabupaten Karawang untuk keperluan kedinasan penagihan retribusi daerah.
+
+---
+
 ## 📌 Status Fitur Khusus
-- **Fitur Otomatisasi WhatsApp & Cron Reminder PBG**: Sesuai instruksi Fase 4 & 5, rute pengiriman berkala `/api/cron/pbg-reminder` dan integrasi WhatsApp pihak ketiga **ditangguhkan sementara (SUSPENDED)**. Seluruh skema database (`pengaturan`, `notifikasi_log`) tetap disiapkan secara utuh dan siap diaktifkan kembali tanpa perlu perombakan arsitektur.
 - **Region Deployment**: Vercel dikonfigurasikan pada region `sin1` (Singapura) sesuai berkas `vercel.json` untuk latensi terendah ke basis data Neon dan pengguna di Karawang.

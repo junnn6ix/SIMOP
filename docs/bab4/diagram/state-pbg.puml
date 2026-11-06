@@ -1,0 +1,13 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+
+[*] --> BELUM_BAYAR : createPbgAction()\n[Admin catat ketetapan retribusi PBG / SKRD]
+
+BELUM_BAYAR --> LUNAS : markPbgLunasAction(id)\n[Admin tandai lunas & rekam dibayar_pada = NOW()]
+
+LUNAS --> BELUM_BAYAR : unmarkPbgLunasAction(id)\n[Admin batalkan pelunasan & set dibayar_pada = NULL]
+
+LUNAS --> [*] : Kewajiban retribusi selesai
+@enduml
+

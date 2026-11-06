@@ -1,0 +1,163 @@
+classDiagram
+    direction TB
+
+    class User {
+        +text id PK
+        +text name
+        +text email UK
+        +boolean emailVerified
+        +text image
+        +text username UK
+        +text displayUsername
+        +role role
+        +boolean banned
+        +text banReason
+        +timestamp banExpires
+        +text nip
+        +bidang bidang
+        +boolean aktif
+        +timestamp createdAt
+        +timestamp updatedAt
+    }
+
+    class Session {
+        +text id PK
+        +text token UK
+        +text userId FK
+        +timestamp expiresAt
+        +text ipAddress
+        +text userAgent
+        +text impersonatedBy
+        +timestamp createdAt
+        +timestamp updatedAt
+    }
+
+    class Account {
+        +text id PK
+        +text accountId
+        +text providerId
+        +text userId FK
+        +text password
+        +timestamp createdAt
+        +timestamp updatedAt
+    }
+
+    class Jadwal {
+        +text id PK
+        +text judul
+        +text deskripsi
+        +date tanggal
+        +text pegawaiId FK
+        +lokasi_tipe lokasiTipe
+        +text alamatLokasi
+        +jadwal_status status
+        +text catatanVerifikator
+        +text buktiKey
+        +text pdfKey
+        +text diverifikasiOlehId FK
+        +timestamp diverifikasiPada
+        +timestamp createdAt
+        +timestamp updatedAt
+    }
+
+    class Barang {
+        +text id PK
+        +text nama
+        +text kodeBarang UK
+        +barang_kategori kategori
+        +integer stok
+        +integer limitStok
+        +text satuan
+        +text deskripsi
+        +text fotoUrl
+        +timestamp diarsipkanPada
+        +timestamp createdAt
+        +timestamp updatedAt
+    }
+
+    class Tiket {
+        +text id PK
+        +text nomorTiket UK
+        +text pemohonId FK
+        +text barangId FK
+        +tiket_jenis jenis
+        +integer jumlah
+        +text keperluan
+        +tiket_status status
+        +text catatanAdmin
+        +timestamp createdAt
+        +timestamp updatedAt
+    }
+
+    class StokLog {
+        +text id PK
+        +text barangId FK
+        +stok_tipe tipe
+        +integer jumlah
+        +integer stokSebelum
+        +integer stokSesudah
+        +text keterangan
+        +text tiketId FK
+        +text userId FK
+        +timestamp createdAt
+    }
+
+    class PBG {
+        +text id PK
+        +text pemohon
+        +text noWa
+        +text noSkrd UK
+        +text lokasi
+        +numeric nominal
+        +date jatuhTempo
+        +pbg_status status
+        +timestamp dibayarPada
+        +timestamp createdAt
+        +timestamp updatedAt
+    }
+
+    class NotifikasiLog {
+        +text id PK
+        +text pbgId FK
+        +notifikasi_jenis jenis
+        +timestamp jatuhTempoSnapshot
+        +notifikasi_status status
+        +text pesan
+        +text waTujuan
+        +text respons
+        +timestamp createdAt
+    }
+
+    class RateLimit {
+        +text id PK
+        +text key UK
+        +integer count
+        +bigint lastRequest
+    }
+
+    class Verification {
+        +text id PK
+        +text identifier
+        +text value
+        +timestamp expiresAt
+        +timestamp createdAt
+        +timestamp updatedAt
+    }
+
+    class Pengaturan {
+        +text key PK
+        +text value
+        +timestamp updatedAt
+    }
+
+    User "1" --> "0..*" Session : memiliki
+    User "1" --> "0..*" Account : memiliki
+    User "1" --> "0..*" Jadwal : menerima penugasan
+    User "0..1" --> "0..*" Jadwal : memverifikasi
+    User "1" --> "0..*" Tiket : mengajukan
+    User "1" --> "0..*" StokLog : mencatat mutasi
+    Barang "1" --> "0..*" Tiket : diajukan
+    Barang "1" --> "0..*" StokLog : mutasi stok
+    Tiket "0..1" --> "0..*" StokLog : relasi pengeluaran
+    PBG "1" --> "0..*" NotifikasiLog : riwayat notifikasi
+

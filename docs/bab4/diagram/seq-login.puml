@@ -1,0 +1,75 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+autonumber
+
+actor "Pengguna\n(Admin/Pegawai)" as User
+participant "LoginForm\n(UI Browser)" as UI
+participant "Route Handler\n(/api/auth/[...all])" as AuthAPI
+participant "Better Auth Engine\n(& Rate Limiter)" as Engine
+database "PostgreSQL\n(Neon DB)" as DB
+
+User -> UI: Input username & password, klik "Masuk"
+activate UI
+
+UI -> AuthAPI: POST /api/auth/sign-in/username {username, password}
+activate AuthAPI
+
+AuthAPI -> Engine: Proses autentikasi masuk
+activate Engine
+
+Engine -> DB: Periksa kuota percobaan di tabel 'rate_limits'
+activate DB
+DB --> Engine: Nilai request count
+deactivate DB
+
+alt Percobaan login > 10 per menit
+  Engine --> AuthAPI: HTTP 429 Too Many Requests
+  AuthAPI --> UI: Error status 429
+  UI --> User: Tampilkan "Terlalu banyak percobaan masuk"
+else Kuota mencukupi (<= 10 req/menit)
+  Engine -> DB: SELECT * FROM users WHERE username = ?
+  activate DB
+  DB --> Engine: Data user
+  deactivate DB
+
+  alt User tidak ditemukan
+    Engine --> AuthAPI: HTTP 400 Invalid Credentials
+    AuthAPI --> UI: Error "Nama pengguna atau kata sandi tidak cocok"
+    UI --> User: Tampilkan pesan gagal masuk
+  else User ditemukan
+    alt User nonaktif / banned (aktif = false ATAU banned = true)
+      Engine --> AuthAPI: HTTP 403 BANNED_USER
+      AuthAPI --> UI: Error code BANNED_USER
+      UI --> User: Tampilkan "Akun Anda dinonaktifkan atau diblokir"
+    else User aktif
+      Engine -> DB: SELECT password FROM accounts WHERE user_id = ?
+      activate DB
+      DB --> Engine: Hashed password
+      deactivate DB
+
+      Engine -> Engine: Verifikasi hash kata sandi (Scrypt)
+
+      alt Kata sandi salah
+        Engine --> AuthAPI: HTTP 400 Invalid Credentials
+        AuthAPI --> UI: Error "Nama pengguna atau kata sandi tidak cocok"
+        UI --> User: Tampilkan pesan gagal masuk
+      else Kata sandi cocok
+        Engine -> DB: INSERT INTO sessions (token, user_id, expires_at)
+        activate DB
+        DB --> Engine: Sesi tersimpan
+        deactivate DB
+
+        Engine --> AuthAPI: Sukses (Set-Cookie: session_token; HttpOnly; SameSite=Lax)
+        deactivate Engine
+        AuthAPI --> UI: HTTP 200 OK {user, session}
+        deactivate AuthAPI
+
+        UI --> User: Toast sukses & redirect ke /dashboard
+        deactivate UI
+      end
+    end
+  end
+end
+@enduml
+

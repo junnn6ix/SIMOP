@@ -1,6 +1,6 @@
 import { desc, eq, and, or, ilike, sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { pbg } from '@/db/schema/domain';
+import { pbg, notifikasiLog } from '@/db/schema/domain';
 import { toWibDateString } from '@/lib/dates';
 
 export interface PbgFilterParams {
@@ -68,6 +68,8 @@ export async function getPbgList(filters: PbgFilterParams = {}) {
       dibayarPada: pbg.dibayarPada,
       createdAt: pbg.createdAt,
       updatedAt: pbg.updatedAt,
+      lastNotifikasiAt: sql<Date | null>`(SELECT MAX(created_at) FROM ${notifikasiLog} WHERE ${notifikasiLog.pbgId} = ${pbg.id})`,
+      notifikasiCount: sql<number>`(SELECT COUNT(*)::int FROM ${notifikasiLog} WHERE ${notifikasiLog.pbgId} = ${pbg.id})`,
     })
     .from(pbg)
     .where(conditions.length > 0 ? and(...conditions) : undefined)
@@ -128,4 +130,59 @@ export async function getPbgById(id: string) {
     .limit(1);
 
   return item || null;
+}
+
+export interface NotifikasiLogItem {
+  id: string;
+  pbgId: string;
+  pemohon: string;
+  noSkrd: string;
+  jenis: string;
+  jatuhTempoSnapshot: Date;
+  status: 'TERKIRIM' | 'GAGAL' | 'DRY_RUN' | 'PENDING';
+  pesan: string;
+  waTujuan: string;
+  respons: string | null;
+  createdAt: Date;
+}
+
+export async function getNotifikasiLogs(filters: { status?: string; search?: string } = {}) {
+  const conditions = [];
+
+  if (filters.status && filters.status !== 'ALL') {
+    conditions.push(eq(notifikasiLog.status, filters.status as any));
+  }
+
+  if (filters.search && filters.search.trim()) {
+    const term = `%${filters.search.trim()}%`;
+    conditions.push(
+      or(
+        ilike(pbg.pemohon, term),
+        ilike(pbg.noSkrd, term),
+        ilike(notifikasiLog.waTujuan, term)
+      )
+    );
+  }
+
+  const rows = await db
+    .select({
+      id: notifikasiLog.id,
+      pbgId: notifikasiLog.pbgId,
+      pemohon: pbg.pemohon,
+      noSkrd: pbg.noSkrd,
+      jenis: notifikasiLog.jenis,
+      jatuhTempoSnapshot: notifikasiLog.jatuhTempoSnapshot,
+      status: notifikasiLog.status,
+      pesan: notifikasiLog.pesan,
+      waTujuan: notifikasiLog.waTujuan,
+      respons: notifikasiLog.respons,
+      createdAt: notifikasiLog.createdAt,
+    })
+    .from(notifikasiLog)
+    .innerJoin(pbg, eq(notifikasiLog.pbgId, pbg.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(notifikasiLog.createdAt))
+    .limit(100);
+
+  return rows as NotifikasiLogItem[];
 }
