@@ -1,0 +1,172 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+
+class "User (users)" as User {
+  + id : text [PK]
+  + name : text
+  + email : text [UK]
+  + emailVerified : boolean
+  + image : text
+  + username : text [UK]
+  + displayUsername : text
+  + role : roleEnum
+  + banned : boolean
+  + banReason : text
+  + banExpires : timestamp
+  + nip : text
+  + bidang : bidangEnum
+  + aktif : boolean
+  + createdAt : timestamp
+  + updatedAt : timestamp
+}
+
+class "Session (sessions)" as Session {
+  + id : text [PK]
+  + token : text [UK]
+  + userId : text [FK]
+  + expiresAt : timestamp
+  + ipAddress : text
+  + userAgent : text
+  + impersonatedBy : text
+  + createdAt : timestamp
+  + updatedAt : timestamp
+}
+
+class "Account (accounts)" as Account {
+  + id : text [PK]
+  + accountId : text
+  + providerId : text
+  + userId : text [FK]
+  + password : text
+  + accessToken : text
+  + refreshToken : text
+  + idToken : text
+  + accessTokenExpiresAt : timestamp
+  + refreshTokenExpiresAt : timestamp
+  + scope : text
+  + createdAt : timestamp
+  + updatedAt : timestamp
+}
+
+class "RateLimit (rate_limits)" as RateLimit {
+  + id : text [PK]
+  + key : text [UK]
+  + count : integer
+  + lastRequest : bigint
+}
+
+class "Verification (verifications)" as Verification {
+  + id : text [PK]
+  + identifier : text
+  + value : text
+  + expiresAt : timestamp
+  + createdAt : timestamp
+  + updatedAt : timestamp
+}
+
+class "Jadwal (jadwal)" as Jadwal {
+  + id : text [PK]
+  + judul : text
+  + deskripsi : text
+  + tanggal : date
+  + pegawaiId : text [FK]
+  + lokasiTipe : lokasiTipeEnum
+  + alamatLokasi : text
+  + status : jadwalStatusEnum
+  + catatanVerifikator : text
+  + buktiKey : text
+  + pdfKey : text
+  + diverifikasiOlehId : text [FK]
+  + diverifikasiPada : timestamp
+  + createdAt : timestamp
+  + updatedAt : timestamp
+}
+
+class "Barang (barang)" as Barang {
+  + id : text [PK]
+  + nama : text
+  + kodeBarang : text [UK]
+  + kategori : barangKategoriEnum
+  + stok : integer
+  + limitStok : integer
+  + satuan : text
+  + deskripsi : text
+  + fotoUrl : text
+  + diarsipkanPada : timestamp
+  + createdAt : timestamp
+  + updatedAt : timestamp
+}
+
+class "Tiket (tiket)" as Tiket {
+  + id : text [PK]
+  + nomorTiket : text [UK]
+  + pemohonId : text [FK]
+  + barangId : text [FK]
+  + jenis : tiketJenisEnum
+  + jumlah : integer
+  + keperluan : text
+  + status : tiketStatusEnum
+  + catatanAdmin : text
+  + createdAt : timestamp
+  + updatedAt : timestamp
+}
+
+class "StokLog (stok_log)" as StokLog {
+  + id : text [PK]
+  + barangId : text [FK]
+  + tipe : stokTipeEnum
+  + jumlah : integer
+  + stokSebelum : integer
+  + stokSesudah : integer
+  + keterangan : text
+  + tiketId : text [FK]
+  + userId : text [FK]
+  + createdAt : timestamp
+}
+
+class "PBG (pbg)" as PBG {
+  + id : text [PK]
+  + pemohon : text
+  + noWa : text
+  + noSkrd : text [UK]
+  + lokasi : text
+  + nominal : numeric(14,2)
+  + jatuhTempo : date
+  + status : pbgStatusEnum
+  + dibayarPada : timestamp
+  + createdAt : timestamp
+  + updatedAt : timestamp
+}
+
+class "NotifikasiLog (notifikasi_log)" as NotifikasiLog {
+  + id : text [PK]
+  + pbgId : text [FK]
+  + jenis : notifikasiJenisEnum
+  + jatuhTempoSnapshot : timestamp
+  + status : notifikasiStatusEnum
+  + pesan : text
+  + waTujuan : text
+  + respons : text
+  + createdAt : timestamp
+}
+
+class "Pengaturan (pengaturan)" as Pengaturan {
+  + key : text [PK]
+  + value : text
+  + updatedAt : timestamp
+}
+
+User "1" -- "0..*" Session : memiliki
+User "1" -- "0..*" Account : memiliki kredensial
+User "1" -- "0..*" Jadwal : menerima penugasan
+User "0..1" -- "0..*" Jadwal : memverifikasi
+User "1" -- "0..*" Tiket : mengajukan
+User "1" -- "0..*" StokLog : mencatat mutasi
+Barang "1" -- "0..*" Tiket : diajukan dalam
+Barang "1" -- "0..*" StokLog : memiliki riwayat
+Tiket "0..1" -- "0..*" StokLog : memicu pengeluaran
+PBG "1" -- "0..*" NotifikasiLog : memiliki riwayat notifikasi
+@enduml
+

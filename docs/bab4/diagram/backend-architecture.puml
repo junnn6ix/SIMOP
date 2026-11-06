@@ -1,0 +1,65 @@
+@startuml
+skinparam handwritten false
+skinparam monochrome false
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+package "Lapisan Klien (Peramban / Browser)" {
+    [Antarmuka Pengguna Next.js 16] as UI
+    [Formulir & Dialog Interaktif] as Forms
+    [Unggah Biner Langsung (Direct S3 PUT)] as DirectUpload
+}
+
+package "Lapisan Keamanan & Jaringan" {
+    [HTTP Security Headers & CSP Dinamis] as CSP
+    [Rate Limiter Berbasis Database] as RateLimit
+    [Resolusi Asal Tepercaya (resolveTrustedOrigins)] as Origins
+}
+
+package "Lapisan Autentikasi & Otorisasi" {
+    [Better Auth 1.2.9 Engine (Scrypt)] as BetterAuth
+    [Guard Sesi Terpusat (requireRole)] as Guard
+}
+
+package "Lapisan Logika Bisnis (Server-Side)" {
+    [Route Handlers REST API] as Handlers
+    [Next.js Server Actions] as Actions
+    [Validasi Skema Zod] as Zod
+}
+
+package "Lapisan Akses Data & Transaksi" {
+    [Drizzle ORM 0.40.0] as Drizzle
+    [Interactive Database Transactions] as Tx
+    [Node-Postgres Pool (max: 5, SSL: true)] as Pool
+}
+
+database "PostgreSQL 16 (Neon Serverless)" as Neon
+cloud "Cloudflare R2 (Private Bucket)" as R2
+
+UI --> CSP : HTTP GET / POST
+Forms --> CSP : Server Actions Call
+DirectUpload --> R2 : HTTP PUT Biner (Presigned URL)
+
+CSP --> RateLimit
+RateLimit --> Origins
+Origins --> Guard
+Guard --> BetterAuth
+
+Guard --> Handlers : Terotorisasi
+Guard --> Actions : Terotorisasi
+
+Handlers --> Zod
+Actions --> Zod
+
+Zod --> Drizzle
+Handlers --> R2 : Penerbitan Presigned URL
+Actions --> R2 : HeadObjectCommand & Delete
+
+Drizzle --> Tx
+Tx --> Pool
+Pool --> Neon
+
+@enduml
+

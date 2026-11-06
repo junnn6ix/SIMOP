@@ -52,9 +52,12 @@ export const pbgStatusEnum = pgEnum('pbg_status', [
 export const notifikasiStatusEnum = pgEnum('notifikasi_status', [
   'TERKIRIM',
   'GAGAL',
+  'DRY_RUN',
+  'PENDING',
 ]);
 
 export const notifikasiJenisEnum = pgEnum('notifikasi_jenis', [
   'PBG_JATUH_TEMPO_H_MIN_3',
   'PBG_JATUH_TEMPO_HARI_H',
+  'MANUAL',
 ]);

@@ -1,0 +1,15 @@
+stateDiagram-v2
+    [*] --> MENUNGGU : Pegawai ajukan tiket baru
+
+    MENUNGGU --> ACC : Admin ACC (Potong stok atomik)
+    MENUNGGU --> DITOLAK : Admin tolak tiket
+    MENUNGGU --> MAINTENANCE : Khusus jenis LAPOR_KERUSAKAN
+
+    ACC --> SELESAI : Penyerahan barang / tuntas
+    ACC --> MAINTENANCE : Khusus jenis LAPOR_KERUSAKAN
+
+    MAINTENANCE --> SELESAI : Pemeliharaan aset rampung
+
+    DITOLAK --> [*]
+    SELESAI --> [*]
+

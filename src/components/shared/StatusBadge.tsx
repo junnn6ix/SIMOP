@@ -94,6 +94,8 @@ function formatStatusLabel(status: string): string {
       return 'Gagal';
     case 'DRY_RUN':
       return 'Dry Run';
+    case 'PENDING':
+      return 'Memproses';
     default:
       return status.replace(/_/g, ' ');
   }

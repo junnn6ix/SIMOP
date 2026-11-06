@@ -1,20 +1,30 @@
 import { z } from 'zod';
 
-const envSchema = z.object({
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL wajib diisi'),
-  DATABASE_URL_TEST: z.string().optional().default(''),
-  BETTER_AUTH_SECRET: z.string().min(1, 'BETTER_AUTH_SECRET wajib diisi'),
-  BETTER_AUTH_URL: z.string().url().default('http://localhost:3000'),
-  NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
-  R2_ACCOUNT_ID: z.string().optional().default(''),
-  R2_ACCESS_KEY_ID: z.string().optional().default(''),
-  R2_SECRET_ACCESS_KEY: z.string().optional().default(''),
-  R2_BUCKET_NAME: z.string().optional().default('simop-bucket'),
-  R2_PUBLIC_DOMAIN: z.string().optional().default(''),
-  FONNTE_TOKEN: z.string().optional().default(''),
-  CRON_SECRET: z.string().optional().default(''),
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-});
+const envSchema = z
+  .object({
+    DATABASE_URL: z.string().min(1, 'DATABASE_URL wajib diisi'),
+    DATABASE_URL_TEST: z.string().optional().default(''),
+    BETTER_AUTH_SECRET: z.string().min(1, 'BETTER_AUTH_SECRET wajib diisi'),
+    BETTER_AUTH_URL: z.string().url().default('http://localhost:3000'),
+    NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+    R2_ACCOUNT_ID: z.string().optional().default(''),
+    R2_ACCESS_KEY_ID: z.string().optional().default(''),
+    R2_SECRET_ACCESS_KEY: z.string().optional().default(''),
+    R2_BUCKET_NAME: z.string().optional().default('simop-bucket'),
+    R2_PUBLIC_DOMAIN: z.string().optional().default(''),
+    FONNTE_TOKEN: z.string().optional().default(''),
+    CRON_SECRET: z.string().optional().default(''),
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  })
+  .superRefine((data, ctx) => {
+    if (data.NODE_ENV === 'production' && (!data.CRON_SECRET || data.CRON_SECRET.trim() === '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'CRON_SECRET wajib diisi pada lingkungan production untuk otorisasi route cron.',
+        path: ['CRON_SECRET'],
+      });
+    }
+  });
 
 const isServer = typeof window === 'undefined';
 

@@ -1,0 +1,19 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+
+[*] --> MENUNGGU : createTiketAction()\n[Pegawai ajukan tiket TKT-YYYYMMDD-XXXX]
+
+MENUNGGU --> ACC : accTiketAction()\n[Admin ACC & potong stok atomik jika barang]
+MENUNGGU --> DITOLAK : updateTiketStatusAction(status: 'DITOLAK')\n[Admin tolak disertai alasan]
+MENUNGGU --> MAINTENANCE : updateTiketStatusAction(status: 'MAINTENANCE')\n[Khusus LAPOR_KERUSAKAN]
+
+ACC --> SELESAI : updateTiketStatusAction(status: 'SELESAI')\n[Barang diserahkan / penanganan selesai]
+ACC --> MAINTENANCE : updateTiketStatusAction(status: 'MAINTENANCE')\n[Khusus LAPOR_KERUSAKAN]
+
+MAINTENANCE --> SELESAI : updateTiketStatusAction(status: 'SELESAI')\n[Perbaikan aset tuntas]
+
+DITOLAK --> [*] : Status akhir permanen
+SELESAI --> [*] : Status akhir permanen
+@enduml
+

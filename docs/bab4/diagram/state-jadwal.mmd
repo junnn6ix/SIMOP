@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> BELUM_DIKERJAKAN : Admin buat jadwal baru
+
+    BELUM_DIKERJAKAN --> MENUNGGU_VERIFIKASI : Pegawai kirim bukti foto (<= 5 MB)
+    
+    MENUNGGU_VERIFIKASI --> SELESAI : Admin ACC (Diverifikasi)
+    MENUNGGU_VERIFIKASI --> BELUM_DIKERJAKAN : Admin TOLAK (Wajib catatan revisi >= 5 kar)
+
+    SELESAI --> [*]
+

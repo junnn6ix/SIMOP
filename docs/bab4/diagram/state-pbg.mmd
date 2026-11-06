@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> BELUM_BAYAR : Admin catat ketetapan retribusi
+
+    BELUM_BAYAR --> LUNAS : Admin tandai Lunas (dibayar_pada diisi)
+    LUNAS --> BELUM_BAYAR : Pembatalan status pelunasan (dibayar_pada dikosongkan)
+
+    LUNAS --> [*]
+

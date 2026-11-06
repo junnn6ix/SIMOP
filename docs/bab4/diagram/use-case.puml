@@ -1,0 +1,48 @@
+@startuml
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+
+left to right direction
+
+actor "Administrator\n(Admin)" as Admin
+actor "Pegawai\n(Staf Dinas)" as Pegawai
+
+rectangle "Sistem Informasi Operasional & Pelayanan (SIMOP DPMPTSP)" {
+  usecase "UC-01 Autentikasi Masuk Akun\n(Sign-In)" as UC01
+  usecase "UC-02 Kelola Data & Akun Pegawai" as UC02
+  usecase "UC-03 Atur Penugasan & Jadwal Dinas" as UC03
+  usecase "UC-04 Lapor Bukti Tugas & Unggah Berkas" as UC04
+  usecase "UC-05 Verifikasi Laporan Tugas Dinas" as UC05
+  usecase "UC-06 Kelola Inventaris & Penyesuaian Stok" as UC06
+  usecase "UC-07 Ajukan Tiket Layanan & Kerusakan" as UC07
+  usecase "UC-08 Proses & Setujui (ACC) Tiket Layanan" as UC08
+  usecase "UC-09 Monitoring Retribusi PBG & SKRD" as UC09
+  usecase "UC-10 Ubah Kata Sandi Mandiri" as UC10
+  usecase "UC-11 Pencarian Cepat Global (Cmd+K)" as UC11
+  
+  usecase "Unggah Bukti ke Cloudflare R2" as UC_Upload
+  usecase "Potong Stok Barang Otomatis" as UC_PotongStok
+}
+
+Admin --> UC01
+Admin --> UC02
+Admin --> UC03
+Admin --> UC05
+Admin --> UC06
+Admin --> UC08
+Admin --> UC09
+Admin --> UC10
+Admin --> UC11
+
+Pegawai --> UC01
+Pegawai --> UC04
+Pegawai --> UC07
+Pegawai --> UC10
+Pegawai --> UC11
+
+UC04 ..> UC_Upload : <<include>>
+UC08 ..> UC_PotongStok : <<include>>
+@enduml
+

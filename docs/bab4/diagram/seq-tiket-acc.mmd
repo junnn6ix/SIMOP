@@ -1,0 +1,59 @@
+sequenceDiagram
+    autonumber
+    actor Pegawai as Pegawai Pemohon
+    actor Admin as Administrator
+    participant UI as Browser UI
+    participant Action as Server Actions
+    participant DB as PostgreSQL (Neon DB)
+
+    Note over Pegawai, DB: Tahap 1: Pengajuan Tiket
+    Pegawai->>UI: Pilih barang, input jumlah & keperluan, submit
+    activate UI
+    UI->>Action: createTiketAction({barangId, jenis, jumlah, keperluan})
+    activate Action
+    Action->>DB: Validasi barang aktif & generate nomor TKT-YYYYMMDD-XXXX
+    activate DB
+    Action->>DB: INSERT INTO tiket (status='MENUNGGU')
+    DB-->>Action: Tiket tersimpan
+    deactivate DB
+    Action-->>UI: Tiket berhasil diajukan
+    deactivate Action
+    UI-->>Pegawai: Notifikasi sukses & muncul di riwayat
+    deactivate UI
+
+    Note over Admin, DB: Tahap 2: Persetujuan (ACC) & Potong Stok Atomik
+    Admin->>UI: Klik tombol ACC pada tiket
+    activate UI
+    UI->>Action: accTiketAction({tiketId, catatanAdmin})
+    activate Action
+    Action->>DB: BEGIN TRANSACTION
+    activate DB
+    Action->>DB: UPDATE tiket SET status='ACC' WHERE id=? AND status='MENUNGGU' RETURNING *
+
+    alt 0 Baris Terpengaruh (Double ACC terdeteksi)
+        DB-->>Action: 0 baris
+        Action->>DB: ROLLBACK
+        Action-->>UI: Error: tiket sudah tidak berstatus MENUNGGU
+        UI-->>Admin: Peringatan konflik konkurensi
+    else Berhasil Diklaim
+        DB-->>Action: Tiket claimed
+        Action->>DB: UPDATE barang SET stok = stok - ? WHERE id=? AND stok >= ? RETURNING stok
+
+        alt Stok tidak mencukupi
+            DB-->>Action: 0 baris (stok kurang)
+            Action->>DB: ROLLBACK
+            Action-->>UI: Error: stok barang tidak mencukupi
+            UI-->>Admin: Notifikasi stok kurang
+        else Stok berhasil dipotong
+            DB-->>Action: Stok baru tercatat
+            Action->>DB: INSERT INTO stok_log (tipe='KELUAR', jumlah, ...)
+            DB-->>Action: Log mutasi tercatat
+            Action->>DB: COMMIT TRANSACTION
+            deactivate DB
+            Action-->>UI: Tiket berhasil disetujui (ACC)
+            deactivate Action
+            UI-->>Admin: Toast sukses & stok tabel berkurang
+            deactivate UI
+        end
+    end
+

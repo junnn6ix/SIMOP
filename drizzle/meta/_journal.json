@@ -36,6 +36,13 @@
       "when": 1793703610612,
       "tag": "0004_canonical_jadwal_tanggal",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793939176347,
+      "tag": "0005_pale_rawhide_kid",
+      "breakpoints": true
     }
   ]
 }

@@ -2,9 +2,16 @@
 
 import { revalidatePath } from 'next/cache';
 import { eq, and, ne } from 'drizzle-orm';
+import { z } from 'zod';
 import { requireRole } from '@/lib/session';
 import { db } from '@/db';
 import { pbg } from '@/db/schema/domain';
+import { runPbgReminder } from './lib/reminder';
+import {
+  setPengaturan,
+  KEY_WA_BOT_AKTIF,
+  KEY_WA_TEMPLATE_REMINDER,
+} from './lib/pengaturan';
 import {
   createPbgSchema,
   updatePbgSchema,
@@ -235,6 +242,64 @@ export async function getPbgFullContactAction(id: string) {
   return {
     ...target,
     nominal: parseFloat(target.nominal),
+  };
+}
+
+const waBotSettingsSchema = z.object({
+  botAktif: z.boolean(),
+  templateReminder: z.string().min(10, 'Template pesan minimal 10 karakter'),
+});
+
+export async function saveWaBotSettingsAction(input: {
+  botAktif: boolean;
+  templateReminder: string;
+}) {
+  await requireRole(['ADMIN'], { checkDbActive: true });
+  const parsed = waBotSettingsSchema.parse(input);
+
+  await setPengaturan(KEY_WA_BOT_AKTIF, String(parsed.botAktif));
+  await setPengaturan(KEY_WA_TEMPLATE_REMINDER, parsed.templateReminder.trim());
+
+  revalidatePath('/admin/pbg');
+  return { success: true, message: 'Pengaturan bot WhatsApp berhasil disimpan.' };
+}
+
+const triggerReminderSchema = z.object({
+  trigger: z.literal('MANUAL'),
+  pbgIds: z.array(z.string()).optional(),
+});
+
+export async function triggerPbgReminderAction(input: {
+  trigger: 'MANUAL';
+  pbgIds?: string[];
+}) {
+  await requireRole(['ADMIN'], { checkDbActive: true });
+  const parsed = triggerReminderSchema.parse(input);
+
+  const summary = await runPbgReminder({
+    trigger: 'MANUAL',
+    pbgIds: parsed.pbgIds,
+  });
+
+  revalidatePath('/admin/pbg');
+
+  const parts = [];
+  if (summary.terkirim > 0) parts.push(`${summary.terkirim} terkirim`);
+  if (summary.dryRun > 0) parts.push(`${summary.dryRun} dry-run`);
+  if (summary.gagal > 0) parts.push(`${summary.gagal} gagal`);
+  if (summary.dilewati > 0) parts.push(`${summary.dilewati} dilewati`);
+
+  let message = `Pengingat berhasil diproses (${summary.total} target): ${parts.join(', ')}.`;
+  if (parsed.pbgIds?.length === 1 && summary.dilewati === 1 && summary.terkirim === 0 && summary.dryRun === 0) {
+    message = 'Pengingat untuk tagihan ini baru saja dikirim dalam kurun waktu 1 jam terakhir (dilewati demi mematuhi batas 1 pesan per jam).';
+  } else if (parts.length === 0) {
+    message = 'Tidak ada tagihan yang diproses.';
+  }
+
+  return {
+    success: true,
+    summary,
+    message,
   };
 }
 

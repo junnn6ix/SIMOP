@@ -1,0 +1,98 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+autonumber
+
+actor "Pegawai Pelaksana" as Pegawai
+actor "Administrator / Verifikator" as Admin
+participant "Antarmuka Klien\n(Browser UI)" as UI
+participant "Route Handler\n(/api/uploads/*)" as UploadAPI
+participant "Server Actions\n(submitLaporan / verifikasi)" as Action
+participant "Cloudflare R2\n(Object Storage)" as R2
+database "PostgreSQL\n(Neon DB)" as DB
+
+== 1. Tahap Pengunggahan Bukti Tugas ==
+Pegawai -> UI: Pilih jadwal dinas, lampirkan foto bukti & klik "Kirim Laporan"
+activate UI
+
+UI -> UploadAPI: POST /api/uploads/sign {jadwalId, slot: 'foto', contentType, fileSize}
+activate UploadAPI
+UploadAPI -> DB: SELECT pegawai_id, status FROM jadwal WHERE id = ?
+activate DB
+DB --> UploadAPI: Data jadwal
+deactivate DB
+
+UploadAPI -> UploadAPI: Validasi kepemilikan, status BELUM_DIKERJAKAN, & ukuran <= 5 MB
+UploadAPI --> UI: HTTP 200 {presignedUrl, objectKey}
+deactivate UploadAPI
+
+UI -> R2: PUT file binary langsung via presignedUrl
+activate R2
+R2 --> UI: HTTP 200 OK
+deactivate R2
+
+UI -> Action: submitLaporanAction({jadwalId, buktiKey, pdfKey})
+activate Action
+Action -> DB: SELECT * FROM jadwal WHERE id = ?
+activate DB
+DB --> Action: Data jadwal
+deactivate DB
+
+Action -> R2: HeadObjectCommand(buktiKey) (Verifikasi integritas)
+activate R2
+R2 --> Action: ContentLength & ContentType
+deactivate R2
+
+alt Ukuran berkas > 5 MB atau MIME tidak valid
+  Action -> R2: DeleteObjectCommand(buktiKey)
+  Action --> UI: Error "Ukuran berkas melebihi batas atau format tidak valid"
+  UI --> Pegawai: Notifikasi penolakan unggahan
+else Berkas valid
+  Action -> DB: UPDATE jadwal SET status='MENUNGGU_VERIFIKASI', bukti_key=?, catatan_verifikator=NULL
+  activate DB
+  DB --> Action: Update berhasil
+  deactivate DB
+  Action --> UI: {success: true, message: "Laporan tugas berhasil dikirim"}
+  UI --> Pegawai: Toast sukses & status berubah MENUNGGU_VERIFIKASI
+end
+deactivate Action
+deactivate UI
+
+== 2. Tahap Verifikasi dan Keputusan ==
+Admin -> UI: Buka menu /admin/verifikasi & klik antrean laporan
+activate UI
+
+UI -> UploadAPI: GET /api/uploads/preview?key=buktiKey
+activate UploadAPI
+UploadAPI -> UploadAPI: Verifikasi wewenang Admin & validitas key
+UploadAPI --> UI: {previewUrl} (berlaku 300 detik)
+deactivate UploadAPI
+
+UI --> Admin: Tampilkan foto bukti kegiatan lapangan
+
+alt Keputusan: ACC (Disetujui)
+  Admin -> UI: Klik "Setujui Laporan (ACC)"
+  UI -> Action: verifikasiJadwalAction({jadwalId, decision: 'ACC'})
+  activate Action
+  Action -> DB: UPDATE jadwal SET status='SELESAI', diverifikasi_oleh_id=?, diverifikasi_pada=NOW()
+  activate DB
+  DB --> Action: Status SELESAI tercatat
+  deactivate DB
+  Action --> UI: {success: true, message: "Laporan tugas berhasil disetujui"}
+  deactivate Action
+  UI --> Admin: Toast sukses & kartu hilang dari antrean
+else Keputusan: TOLAK (Perlu Perbaikan)
+  Admin -> UI: Input catatan revisi (min 5 karakter), klik "Tolak Laporan"
+  UI -> Action: verifikasiJadwalAction({jadwalId, decision: 'TOLAK', catatanVerifikator})
+  activate Action
+  Action -> DB: UPDATE jadwal SET status='BELUM_DIKERJAKAN', catatan_verifikator=?
+  activate DB
+  DB --> Action: Status BELUM_DIKERJAKAN & catatan tercatat
+  deactivate DB
+  Action --> UI: {success: true, message: "Laporan ditolak dan dikembalikan"}
+  deactivate Action
+  UI --> Admin: Toast pemberitahuan & kartu hilang dari antrean
+  deactivate UI
+end
+@enduml
+

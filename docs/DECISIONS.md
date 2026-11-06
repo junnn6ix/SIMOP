@@ -118,14 +118,49 @@ Dokumen ini mencatat keputusan arsitektural dan teknis dalam pengembangan aplika
 
 ---
 
-## 14. Penangguhan Fitur Cron Reminder & Bot WhatsApp (Fase 4)
-Sesuai arahan, fitur otomatisasi WhatsApp pada Fase 4 **ditangguhkan sementara** demi fokus pada stabilitas data retribusi PBG dan verifikasi domain:
-- **Komponen yang Ditangguhkan (TIDAK DIBUAT)**:
-  1. Route Handler `/api/cron/pbg-reminder` dan jadwal cron `vercel.json`.
-  2. Abstraksi `WaSender`, implementasi `FonnteWaSender`, `ConsoleWaSender`, `FONNTE_TOKEN`, dan `CRON_SECRET`.
-  3. Panel UI pengaturan bot WhatsApp, editor template pesan, tombol "Kirim Sekarang", dan tabel log pengiriman notifikasi.
-- **Pertahanan Skema**:
-  Tabel `pengaturan` (dengan default `wa_bot_aktif = 'false'` dan template reminder) serta tabel `notifikasi_log` tetap dipertahankan pada skema basis data dan tidak diubah, sehingga siap diaktifkan kembali tanpa migrasi ulang.
+## 14. Implementasi Pengingat PBG Otomatis & Bot WhatsApp (Fase 4b)
+
+Catatan penangguhan Fase 4 dicabut dan digantikan dengan implementasi penuh Fase 4b:
+
+### A. Verifikasi Dokumentasi Resmi Fonnte API
+Berdasarkan verifikasi terhadap dokumentasi resmi Fonnte (`https://api.fonnte.com/send`):
+- **Endpoint**: `POST https://api.fonnte.com/send`
+- **Header Otorisasi**: `Authorization: <FONNTE_TOKEN>` (token perangkat langsung, tanpa awalan `Bearer`).
+- **Format Payload**: `multipart/form-data` dengan parameter:
+  - `target`: Nomor telepon seluler pemohon dalam format internasional (`628...`).
+  - `message`: Naskah teks pesan yang telah dirender dengan data dinamis.
+  - `countryCode`: `'62'` (kode negara Republik Indonesia).
+- **Format Respons**:
+  - Berhasil: JSON `{ status: true, message: "message sent", detail: { id: [...], target: [...], status: ["sent"] } }`.
+  - Gagal: JSON `{ status: false, reason: "device is disconnected" | "invalid token" }`.
+- **Abstraksi `WaSender`**:
+  - `FonnteWaSender`: Menggunakan `fetch` bawaan dengan `AbortSignal.timeout(10_000)` (10 detik timeout) tanpa pustaka eksternal.
+  - `ConsoleWaSender`: Fallback mode *dry-run* bila token kosong atau toggle `wa_bot_aktif` bernilai `'false'`.
+  - Pencegahan Kebocoran Data: Nomor tujuan selalu disensor (`62812****7890`) pada log konsol dan basis data, token otorisasi tidak pernah dicatat.
+
+### B. Strategi Idempotensi & Pencegahan Kirim Ganda
+- **Pencatatan Awal Atomik**:
+  Sebelum mengirim permintaan HTTP ke gateway WhatsApp, sistem terlebih dahulu menyisipkan baris ke tabel `notifikasi_log` dengan status `'PENDING'`:
+  `INSERT INTO notifikasi_log (pbg_id, jenis, jatuh_tempo_snapshot, status, ...) VALUES (...) ON CONFLICT (pbg_id, jenis, jatuh_tempo_snapshot) DO NOTHING RETURNING id;`
+- **Jaminan Idempoten**:
+  Bila terjadi eksekusi cron bersamaan atau pemicuan ulang pada hari yang sama, kueri `INSERT` menghasilkan 0 baris (`conflict`) dan sistem seketika melewati target tersebut (`dilewati++`). Gateway WhatsApp hanya dipanggil jika baris berhasil diklaim secara eksklusif.
+
+### C. Desain Log Manual vs Otomatis
+- **Pengingat Otomatis (Cron)**:
+  Menggunakan `jenis = 'PBG_JATUH_TEMPO_H_MIN_3'` dan `jatuh_tempo_snapshot = pbg.jatuh_tempo`. Ini mengunci pengiriman tepat 1 kali per tagihan untuk siklus jatuh tempo tersebut.
+- **Pengiriman Manual (On-Demand)**:
+  Menggunakan `jenis = 'MANUAL'` dan `jatuh_tempo_snapshot = new Date()` (stempel waktu saat tombol diklik). Keputusan ini diambil agar:
+  1. Pengiriman manual tidak bentrok dengan *unique constraint* pengingat otomatis.
+  2. Pengiriman manual darurat tidak menghalangi cron otomatis harian yang akan datang.
+  3. Riwayat setiap percobaan manual tercatat secara transparan dengan stempel waktu unik di tabel audit.
+
+### D. Batas Pengiriman & Durasi Eksekusi
+- **Batas Batch**: Dibatasi maksimal 50 target per eksekusi (`limit 50`) untuk menjaga durasi total di bawah batas *timeout* serverless Vercel (60 detik).
+- **Jeda Antar Pesan**: Jeda 1.2 detik (`setTimeout`) disisipkan antar pengiriman pesan untuk menghindari pemblokiran nomor (anti-spam filter WhatsApp) oleh penyedia gateway.
+
+### E. Hal yang Sengaja Belum Dikerjakan (Deferred)
+- **Bot Dua Arah (Inbound Webhook)**: Modul saat ini berfokus pada pengiriman pengingat satu arah (*outbound notification*). Webhook penerima balasan pesan pemohon ditangguhkan ke fase berikutnya setelah regulasi alur penanganan aduan disepakati.
+- **Pengingat Penugasan Harian Pegawai via WA**: Kerangka kerja `WaSender` yang dibangun telah siap pakai (*reusable*), namun pengingat jadwal tugas harian aparatur akan diaktifkan pada iterasi lanjutan.
 
 ---
 
